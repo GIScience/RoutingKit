@@ -7,7 +7,7 @@ archiver_name = "ar"
 
 # "-DROUTING_KIT_NO_GCC_EXTENSIONS", "-DROUTING_KIT_NO_POSIX", "-DROUTING_KIT_NO_ALIGNED_ALLOC"
 #compiler_options = ["-Wall", "-O0", "-ggdb","-march=native", "-ffast-math", "-std=c++11", "-D_GLIBCXX_DEBUG"]
-compiler_options = ["-Wall", "-DNDEBUG", "-march=native", "-ffast-math", "-std=c++11", "-O3"]
+compiler_options = ["-Wall", "-DNDEBUG", "-march=native", "-ffast-math", "-std=c++11", "-O3", "-DROUTING_KIT_NO_ALIGNED_ALLOC"]
 linker_options = []
 
 build_static_library = True
@@ -35,7 +35,7 @@ def does_cpp_file_contains_main(file_name):
 				return True
 		return False
 
-src_files = [os.path.join("src",x) for x in os.listdir("src") if os.path.isfile(os.path.join("src", x))]
+src_files = [os.path.join("src",x) for x in sorted(os.listdir("src")) if os.path.isfile(os.path.join("src", x))]
 cpp_files = [x for x in src_files if os.path.splitext(x)[1] == ".cpp"]
 h_files = [x for x in src_files if os.path.splitext(x)[1] == ".h"]
 bin_files = [os.path.join("bin", os.path.splitext(os.path.basename(x))[0]) for x in src_files if does_cpp_file_contains_main(x)]
@@ -251,8 +251,8 @@ with open("Makefile", "w") as f:
 
 	print("CFLAGS="+" ".join(compiler_options), file=f)
 	print("LDFLAGS="+" ".join(linker_options), file=f)
-	print("OMP_CFLAGS=-fopenmp", file=f)
-	print("OMP_LDFLAGS=-fopenmp", file=f)
+	print("OMP_CFLAGS=", file=f)
+	print("OMP_LDFLAGS=", file=f)
 	print("", file=f)
 
 	print("all: " + " ".join(bin_files + lib_files), file=f)
