@@ -23,10 +23,11 @@ int main(int argc, char*argv[]){
 		string target_file;
 		string lat_file;
 		string lon_file;
+		string avoid_file;
 		string distance_file;
 
-		if(argc != 9){
-			cerr << argv[0] << " first_out_file head_file weight_file source_file target_file lat_file lon_file distance_file" << endl;
+		if(argc != 10){
+			cerr << argv[0] << " first_out_file head_file weight_file source_file target_file lat_file lon_file avoid_file distance_file" << endl;
 			return 1;
 		}else{
 			first_out_file = argv[1];
@@ -36,7 +37,8 @@ int main(int argc, char*argv[]){
 			target_file = argv[5];
 			lat_file = argv[6];
 			lon_file = argv[7];
-			distance_file = argv[8];
+			avoid_file = argv[8];
+			distance_file = argv[9];
 		}
 
 		cout << "Loading graph ... " << flush;
@@ -46,7 +48,7 @@ int main(int argc, char*argv[]){
 		vector<unsigned>weight = load_vector<unsigned>(weight_file);
 		vector<float>latitude = load_vector<float>(lat_file);
 		vector<float>longitude = load_vector<float>(lon_file);
-		
+	
 		cout << "done" << endl;
 
 		cout << "Validity tests ... " << flush;
@@ -73,6 +75,7 @@ int main(int argc, char*argv[]){
 
 		vector<unsigned>source = load_vector<unsigned>(source_file);
 		vector<unsigned>target = load_vector<unsigned>(target_file);
+	    BitVector avoid_nodes = load_bit_vector(avoid_file);
 
 		cout << "done" << endl;
 
@@ -96,7 +99,7 @@ int main(int argc, char*argv[]){
 			long long time = -get_micro_time();
 			auto heuristic = new BeelineDistanceHeuristic(latitude, longitude, target[i]);
 
-			astar.reset().add_source(source[i]);
+			astar.reset().add_source(source[i]).set_avoid_nodes(&avoid_nodes);
 			while(!astar.is_finished()){
 				auto x = astar.settle(ScalarGetWeight(weight),*heuristic).node;
 				if(x == target[i])

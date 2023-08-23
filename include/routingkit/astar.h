@@ -5,6 +5,7 @@
 #include <routingkit/constants.h>
 #include <routingkit/timestamp_flag.h>
 #include <routingkit/geo_dist.h>
+#include <routingkit/bit_vector.h>
 #include <vector>
 
 #include <iostream>
@@ -33,6 +34,7 @@ public:
         std::fill(tentative_distance.begin(), tentative_distance.end(), inf_weight);
 		queue.clear();
 		was_popped.reset_all();
+        avoid_nodes = nullptr;
 		return *this;
 	}
 
@@ -49,6 +51,7 @@ public:
             std::fill(tentative_distance.begin(), tentative_distance.end(), inf_weight);
 			queue.clear();
 			was_popped.reset_all();
+            avoid_nodes = nullptr;
 			return *this;
 		}else{
 			this->first_out = &first_out;
@@ -70,6 +73,12 @@ public:
 		queue.push({id, departure_time});
 		return *this;
 	}
+
+    Astar&set_avoid_nodes(BitVector *avoid_nodes){
+        assert(avoid_nodes->size() == this->first_out->size());
+        this->avoid_nodes = avoid_nodes;
+        return *this;
+    }
 
 	bool is_finished()const{
 		return queue.empty();
@@ -93,18 +102,15 @@ public:
 		was_popped.set(p.id);
         
 		for(unsigned a=(*first_out)[p.id]; a<(*first_out)[p.id+1]; ++a){
-			if(!was_popped.is_set((*head)[a])){
+			if((!was_popped.is_set((*head)[a]))&&(!avoid_nodes->is_set((*head)[a]))){
 				unsigned w = get_weight(a, p.key);
 				if(w < inf_weight){
 					unsigned score = tentative_distance[p.id] + w;
 					if (score < tentative_distance[(*head)[a]]) {
 						if(queue.contains_id((*head)[a])){
-							if(queue.decrease_key({(*head)[a], score + heuristic((*head)[a])})){
-								//predecessor_arc[(*head)[a]] = a;
-							}
+							queue.decrease_key({(*head)[a], score + heuristic((*head)[a])});
 						} else {
 							queue.push({(*head)[a], score + heuristic((*head)[a])});
-							predecessor_arc[(*head)[a]] = a;
 						}
                         predecessor_arc[(*head)[a]] = a;
 						tentative_distance[(*head)[a]] = score;
@@ -164,6 +170,7 @@ private:
 	const std::vector<unsigned>*first_out;
 	const std::vector<unsigned>*tail;
 	const std::vector<unsigned>*head;
+	const BitVector *avoid_nodes;
 };
 
 class ScalarGetWeight{

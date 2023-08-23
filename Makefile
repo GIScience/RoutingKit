@@ -6,7 +6,7 @@ LDFLAGS=
 OMP_CFLAGS=
 OMP_LDFLAGS=
 
-all: bin/compare_vector bin/compute_contraction_hierarchy bin/compute_geographic_distance_weights bin/compute_nested_dissection_order bin/convert_road_dimacs_coordinates bin/convert_road_dimacs_graph bin/decode_vector bin/encode_vector bin/examine_ch bin/export_road_dimacs_graph bin/generate_constant_vector bin/generate_dijkstra_rank_test_queries bin/generate_random_node_list bin/generate_random_source_times bin/generate_test_queries bin/graph_to_dot bin/graph_to_svg bin/osm_extract bin/randomly_permute_nodes bin/run_astar bin/run_contraction_hierarchy_query bin/run_dijkstra bin/show_path bin/test_basic_features bin/test_bit_vector bin/test_buffered_asynchronous_reader bin/test_contraction_hierarchy_extra_weight bin/test_contraction_hierarchy_path_query bin/test_contraction_hierarchy_pinned_query bin/test_customizable_contraction_hierarchy bin/test_customizable_contraction_hierarchy_customization bin/test_customizable_contraction_hierarchy_path_query bin/test_customizable_contraction_hierarchy_perfect_customization bin/test_customizable_contraction_hierarchy_pinned_query bin/test_customizable_contraction_hierarchy_reset bin/test_dijkstra bin/test_geo_dist bin/test_id_mapper bin/test_id_set_queue bin/test_inverse_vector bin/test_nearest_neighbor bin/test_nested_dissection bin/test_osm_simple bin/test_permutation bin/test_protobuf bin/test_sort bin/test_strongly_connected_component bin/test_tag_map lib/libroutingkit.a lib/libroutingkit.so
+all: bin/compare_vector bin/compute_contraction_hierarchy bin/compute_geographic_distance_weights bin/compute_nested_dissection_order bin/convert_road_dimacs_coordinates bin/convert_road_dimacs_graph bin/decode_vector bin/encode_vector bin/examine_ch bin/export_road_dimacs_graph bin/generate_constant_vector bin/generate_dijkstra_rank_test_queries bin/generate_random_node_list bin/generate_random_source_times bin/generate_test_queries bin/graph_to_dot bin/graph_to_svg bin/map_polygons_to_nodes bin/osm_extract bin/randomly_permute_nodes bin/run_astar bin/run_contraction_hierarchy_query bin/run_dijkstra bin/show_path bin/test_basic_features bin/test_bit_vector bin/test_buffered_asynchronous_reader bin/test_contraction_hierarchy_extra_weight bin/test_contraction_hierarchy_path_query bin/test_contraction_hierarchy_pinned_query bin/test_customizable_contraction_hierarchy bin/test_customizable_contraction_hierarchy_customization bin/test_customizable_contraction_hierarchy_path_query bin/test_customizable_contraction_hierarchy_perfect_customization bin/test_customizable_contraction_hierarchy_pinned_query bin/test_customizable_contraction_hierarchy_reset bin/test_dijkstra bin/test_geo_dist bin/test_id_mapper bin/test_id_set_queue bin/test_inverse_vector bin/test_nearest_neighbor bin/test_nested_dissection bin/test_osm_simple bin/test_permutation bin/test_point_in_polygon bin/test_protobuf bin/test_sort bin/test_strongly_connected_component bin/test_tag_map lib/libroutingkit.a lib/libroutingkit.so
 
 build/bit_select.o: src/bit_select.cpp src/bit_select.h src/emulate_gcc_builtin.h generate_make_file
 	@mkdir -p build
@@ -115,6 +115,10 @@ build/graph_util.o: include/routingkit/constants.h include/routingkit/graph_util
 build/id_mapper.o: include/routingkit/constants.h include/routingkit/id_mapper.h src/bit_select.h src/emulate_gcc_builtin.h src/id_mapper.cpp generate_make_file
 	@mkdir -p build
 	$(CC) $(CFLAGS)  -c src/id_mapper.cpp -o build/id_mapper.o
+
+build/map_polygons_to_nodes.o: include/routingkit/bit_vector.h include/routingkit/point_in_polygon.h include/routingkit/vector_io.h src/map_polygons_to_nodes.cpp generate_make_file
+	@mkdir -p build
+	$(CC) $(CFLAGS)  -c src/map_polygons_to_nodes.cpp -o build/map_polygons_to_nodes.o
 
 build/nested_dissection.o: include/routingkit/bit_vector.h include/routingkit/constants.h include/routingkit/filter.h include/routingkit/graph_util.h include/routingkit/id_mapper.h include/routingkit/inverse_vector.h include/routingkit/min_max.h include/routingkit/nested_dissection.h include/routingkit/permutation.h include/routingkit/sort.h include/routingkit/timer.h src/nested_dissection.cpp generate_make_file
 	@mkdir -p build
@@ -252,6 +256,10 @@ build/test_permutation.o: include/routingkit/constants.h include/routingkit/perm
 	@mkdir -p build
 	$(CC) $(CFLAGS)  -c src/test_permutation.cpp -o build/test_permutation.o
 
+build/test_point_in_polygon.o: include/routingkit/point_in_polygon.h src/expect.h src/test_point_in_polygon.cpp generate_make_file
+	@mkdir -p build
+	$(CC) $(CFLAGS)  -c src/test_point_in_polygon.cpp -o build/test_point_in_polygon.o
+
 build/test_protobuf.o: src/expect.h src/protobuf.h src/test_protobuf.cpp generate_make_file
 	@mkdir -p build
 	$(CC) $(CFLAGS)  -c src/test_protobuf.cpp -o build/test_protobuf.o
@@ -347,6 +355,10 @@ bin/graph_to_dot: build/bit_vector.o build/contraction_hierarchy.o build/graph_t
 bin/graph_to_svg: build/bit_vector.o build/contraction_hierarchy.o build/graph_to_svg.o build/graph_util.o build/timer.o build/vector_io.o
 	@mkdir -p bin
 	$(CC) $(LDFLAGS) build/bit_vector.o build/contraction_hierarchy.o build/graph_to_svg.o build/graph_util.o build/timer.o build/vector_io.o -pthread  -o bin/graph_to_svg
+
+bin/map_polygons_to_nodes: build/bit_vector.o build/map_polygons_to_nodes.o build/vector_io.o
+	@mkdir -p bin
+	$(CC) $(LDFLAGS) build/bit_vector.o build/map_polygons_to_nodes.o build/vector_io.o -pthread  -o bin/map_polygons_to_nodes
 
 bin/osm_extract: build/bit_select.o build/bit_vector.o build/buffered_asynchronous_reader.o build/file_data_source.o build/graph_util.o build/id_mapper.o build/osm_decoder.o build/osm_extract.o build/osm_graph_builder.o build/osm_profile.o build/protobuf.o build/timer.o build/vector_io.o
 	@mkdir -p bin
@@ -455,6 +467,10 @@ bin/test_osm_simple: build/bit_select.o build/bit_vector.o build/buffered_asynch
 bin/test_permutation: build/expect.o build/test_permutation.o
 	@mkdir -p bin
 	$(CC) $(LDFLAGS) build/expect.o build/test_permutation.o  -o bin/test_permutation
+
+bin/test_point_in_polygon: build/expect.o build/test_point_in_polygon.o
+	@mkdir -p bin
+	$(CC) $(LDFLAGS) build/expect.o build/test_point_in_polygon.o  -o bin/test_point_in_polygon
 
 bin/test_protobuf: build/expect.o build/protobuf.o build/test_protobuf.o
 	@mkdir -p bin
