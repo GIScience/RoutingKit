@@ -1,5 +1,5 @@
-#ifndef POINT_IN_POLYGON
-#define POINT_IN_POLYGON
+#ifndef EDGE_CROSSES_POLYGON
+#define EDGE_CROSSES_POLYGON
 
 #include <vector>
 #include <iostream>
