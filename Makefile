@@ -6,7 +6,7 @@ LDFLAGS=
 OMP_CFLAGS=
 OMP_LDFLAGS=
 
-all: bin/compare_vector bin/compute_contraction_hierarchy bin/compute_geographic_distance_weights bin/compute_nested_dissection_order bin/convert_road_dimacs_coordinates bin/convert_road_dimacs_graph bin/decode_vector bin/encode_vector bin/examine_ch bin/export_road_dimacs_graph bin/generate_constant_vector bin/generate_dijkstra_rank_test_queries bin/generate_random_node_list bin/generate_random_source_times bin/generate_test_queries bin/graph_to_dot bin/graph_to_svg bin/map_polygons_to_nodes bin/osm_extract bin/randomly_permute_nodes bin/run_astar bin/run_contraction_hierarchy_query bin/run_dijkstra bin/show_path bin/test_basic_features bin/test_bit_vector bin/test_buffered_asynchronous_reader bin/test_contraction_hierarchy_extra_weight bin/test_contraction_hierarchy_path_query bin/test_contraction_hierarchy_pinned_query bin/test_customizable_contraction_hierarchy bin/test_customizable_contraction_hierarchy_customization bin/test_customizable_contraction_hierarchy_path_query bin/test_customizable_contraction_hierarchy_perfect_customization bin/test_customizable_contraction_hierarchy_pinned_query bin/test_customizable_contraction_hierarchy_reset bin/test_dijkstra bin/test_geo_dist bin/test_id_mapper bin/test_id_set_queue bin/test_inverse_vector bin/test_nearest_neighbor bin/test_nested_dissection bin/test_osm_simple bin/test_permutation bin/test_point_in_polygon bin/test_protobuf bin/test_sort bin/test_strongly_connected_component bin/test_tag_map lib/libroutingkit.a lib/libroutingkit.so
+all: bin/compare_vector bin/compute_contraction_hierarchy bin/compute_geographic_distance_weights bin/compute_nested_dissection_order bin/convert_road_dimacs_coordinates bin/convert_road_dimacs_graph bin/decode_vector bin/encode_vector bin/examine_ch bin/export_road_dimacs_graph bin/generate_constant_vector bin/generate_dijkstra_rank_test_queries bin/generate_random_node_list bin/generate_random_source_times bin/generate_test_queries bin/graph_to_dot bin/graph_to_svg bin/map_polygons_to_nodes bin/osm_extract bin/randomly_permute_nodes bin/run_astar bin/run_contraction_hierarchy_query bin/run_dijkstra bin/show_path bin/test_basic_features bin/test_bit_vector bin/test_buffered_asynchronous_reader bin/test_contraction_hierarchy_extra_weight bin/test_contraction_hierarchy_path_query bin/test_contraction_hierarchy_pinned_query bin/test_customizable_contraction_hierarchy bin/test_customizable_contraction_hierarchy_customization bin/test_customizable_contraction_hierarchy_path_query bin/test_customizable_contraction_hierarchy_perfect_customization bin/test_customizable_contraction_hierarchy_pinned_query bin/test_customizable_contraction_hierarchy_reset bin/test_dijkstra bin/test_edge_crosses_polygon bin/test_geo_dist bin/test_id_mapper bin/test_id_set_queue bin/test_inverse_vector bin/test_nearest_neighbor bin/test_nested_dissection bin/test_osm_simple bin/test_permutation bin/test_point_in_polygon bin/test_protobuf bin/test_sort bin/test_strongly_connected_component bin/test_tag_map lib/libroutingkit.a lib/libroutingkit.so
 
 build/bit_select.o: src/bit_select.cpp src/bit_select.h src/emulate_gcc_builtin.h generate_make_file
 	@mkdir -p build
@@ -224,6 +224,10 @@ build/test_dijkstra.o: include/routingkit/bit_vector.h include/routingkit/consta
 	@mkdir -p build
 	$(CC) $(CFLAGS)  -c src/test_dijkstra.cpp -o build/test_dijkstra.o
 
+build/test_edge_crosses_polygon.o: include/routingkit/edge_crosses_polygon.h src/expect.h src/test_edge_crosses_polygon.cpp generate_make_file
+	@mkdir -p build
+	$(CC) $(CFLAGS)  -c src/test_edge_crosses_polygon.cpp -o build/test_edge_crosses_polygon.o
+
 build/test_geo_dist.o: include/routingkit/geo_dist.h include/routingkit/timer.h src/expect.h src/test_geo_dist.cpp generate_make_file
 	@mkdir -p build
 	$(CC) $(CFLAGS)  -c src/test_geo_dist.cpp -o build/test_geo_dist.o
@@ -435,6 +439,10 @@ bin/test_customizable_contraction_hierarchy_reset: build/bit_select.o build/bit_
 bin/test_dijkstra: build/bit_vector.o build/expect.o build/test_dijkstra.o build/vector_io.o build/verify.o
 	@mkdir -p bin
 	$(CC) $(LDFLAGS) build/bit_vector.o build/expect.o build/test_dijkstra.o build/vector_io.o build/verify.o -pthread  -o bin/test_dijkstra
+
+bin/test_edge_crosses_polygon: build/expect.o build/test_edge_crosses_polygon.o
+	@mkdir -p bin
+	$(CC) $(LDFLAGS) build/expect.o build/test_edge_crosses_polygon.o  -o bin/test_edge_crosses_polygon
 
 bin/test_geo_dist: build/expect.o build/test_geo_dist.o build/timer.o
 	@mkdir -p bin
