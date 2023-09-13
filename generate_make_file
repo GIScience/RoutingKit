@@ -311,6 +311,8 @@ with open("Makefile", "w") as f:
 				print("\t@mkdir -p bin", file=f)
 				print("\t$(CC) $(LDFLAGS) "+" ".join(depends_on_object_files+extra_linker_options)+" "+" -o "+bin_file, file=f)
 			print("", file=f)
+	print(".PHONY:\nclean:", file=f)
+	print("\t$(RM) -rf bin build lib", file=f)
 
 print("Successfully generated Makefile.")
 
