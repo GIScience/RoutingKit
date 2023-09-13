@@ -6,7 +6,7 @@ LDFLAGS=
 OMP_CFLAGS=
 OMP_LDFLAGS=
 
-all: bin/compare_vector bin/compute_contraction_hierarchy bin/compute_geographic_distance_weights bin/compute_nested_dissection_order bin/convert_road_dimacs_coordinates bin/convert_road_dimacs_graph bin/decode_vector bin/encode_vector bin/examine_ch bin/export_road_dimacs_graph bin/generate_constant_vector bin/generate_dijkstra_rank_test_queries bin/generate_random_node_list bin/generate_random_source_times bin/generate_test_queries bin/graph_to_dot bin/graph_to_svg bin/map_polygons_to_edges bin/map_polygons_to_nodes bin/osm_extract bin/randomly_permute_nodes bin/run_astar bin/run_contraction_hierarchy_query bin/run_dijkstra bin/show_path bin/test_basic_features bin/test_bit_vector bin/test_buffered_asynchronous_reader bin/test_contraction_hierarchy_extra_weight bin/test_contraction_hierarchy_path_query bin/test_contraction_hierarchy_pinned_query bin/test_customizable_contraction_hierarchy bin/test_customizable_contraction_hierarchy_customization bin/test_customizable_contraction_hierarchy_path_query bin/test_customizable_contraction_hierarchy_perfect_customization bin/test_customizable_contraction_hierarchy_pinned_query bin/test_customizable_contraction_hierarchy_reset bin/test_dijkstra bin/test_edge_crosses_polygon bin/test_geo_dist bin/test_id_mapper bin/test_id_set_queue bin/test_inverse_vector bin/test_nearest_neighbor bin/test_nested_dissection bin/test_osm_simple bin/test_permutation bin/test_point_in_polygon bin/test_protobuf bin/test_sort bin/test_strongly_connected_component bin/test_tag_map lib/libroutingkit.a lib/libroutingkit.so
+all: bin/compare_vector bin/compute_contraction_hierarchy bin/compute_geographic_distance_weights bin/compute_nested_dissection_order bin/convert_road_dimacs_coordinates bin/convert_road_dimacs_graph bin/decode_vector bin/encode_vector bin/examine_ch bin/export_road_dimacs_graph bin/generate_constant_vector bin/generate_dijkstra_rank_test_queries bin/generate_random_node_list bin/generate_random_source_times bin/generate_test_queries bin/graph_to_dot bin/graph_to_svg bin/map_polygons_to_edges bin/map_polygons_to_nodes bin/osm_extract bin/randomly_permute_nodes bin/run_astar bin/run_contraction_hierarchy_query bin/run_dijkstra bin/show_path bin/test_basic_features bin/test_bit_vector bin/test_buffered_asynchronous_reader bin/test_contraction_hierarchy_extra_weight bin/test_contraction_hierarchy_path_query bin/test_contraction_hierarchy_pinned_query bin/test_customizable_contraction_hierarchy bin/test_customizable_contraction_hierarchy_customization bin/test_customizable_contraction_hierarchy_path_query bin/test_customizable_contraction_hierarchy_perfect_customization bin/test_customizable_contraction_hierarchy_pinned_query bin/test_customizable_contraction_hierarchy_reset bin/test_dijkstra bin/test_edge_crosses_polygon bin/test_geo_dist bin/test_id_mapper bin/test_id_set_queue bin/test_inverse_vector bin/test_nearest_neighbor bin/test_nested_dissection bin/test_osm_simple bin/test_permutation bin/test_point_in_polygon bin/test_protobuf bin/test_sort bin/test_strongly_connected_component bin/test_tag_map bin/test_visibility_graph lib/libroutingkit.a lib/libroutingkit.so
 
 build/bit_select.o: src/bit_select.cpp src/bit_select.h src/emulate_gcc_builtin.h generate_make_file
 	@mkdir -p build
@@ -284,6 +284,10 @@ build/test_tag_map.o: include/routingkit/constants.h include/routingkit/inverse_
 	@mkdir -p build
 	$(CC) $(CFLAGS)  -c src/test_tag_map.cpp -o build/test_tag_map.o
 
+build/test_visibility_graph.o: include/routingkit/geo_dist.h include/routingkit/segments_intersect.h include/routingkit/visibility_graph.h src/expect.h src/test_visibility_graph.cpp generate_make_file
+	@mkdir -p build
+	$(CC) $(CFLAGS)  -c src/test_visibility_graph.cpp -o build/test_visibility_graph.o
+
 build/timer.o: include/routingkit/timer.h src/timer.cpp generate_make_file
 	@mkdir -p build
 	$(CC) $(CFLAGS)  -c src/timer.cpp -o build/timer.o
@@ -504,6 +508,10 @@ bin/test_tag_map: build/expect.o build/test_tag_map.o
 	@mkdir -p bin
 	$(CC) $(LDFLAGS) build/expect.o build/test_tag_map.o  -o bin/test_tag_map
 
+bin/test_visibility_graph: build/expect.o build/test_visibility_graph.o
+	@mkdir -p bin
+	$(CC) $(LDFLAGS) build/expect.o build/test_visibility_graph.o -lm  -o bin/test_visibility_graph
+
 lib/libroutingkit.a: build/bit_select.o build/bit_vector.o build/buffered_asynchronous_reader.o build/contraction_hierarchy.o build/customizable_contraction_hierarchy.o build/file_data_source.o build/geo_position_to_node.o build/graph_util.o build/id_mapper.o build/nested_dissection.o build/osm_decoder.o build/osm_graph_builder.o build/osm_profile.o build/osm_simple.o build/protobuf.o build/strongly_connected_component.o build/timer.o build/vector_io.o
 	@mkdir -p lib
 	$(AR) rcs lib/libroutingkit.a build/bit_select.o build/bit_vector.o build/buffered_asynchronous_reader.o build/contraction_hierarchy.o build/customizable_contraction_hierarchy.o build/file_data_source.o build/geo_position_to_node.o build/graph_util.o build/id_mapper.o build/nested_dissection.o build/osm_decoder.o build/osm_graph_builder.o build/osm_profile.o build/osm_simple.o build/protobuf.o build/strongly_connected_component.o build/timer.o build/vector_io.o
@@ -512,3 +520,6 @@ lib/libroutingkit.so: build/bit_select.o build/bit_vector.o build/buffered_async
 	@mkdir -p lib
 	$(CC) -shared $(LDFLAGS) build/bit_select.o build/bit_vector.o build/buffered_asynchronous_reader.o build/contraction_hierarchy.o build/customizable_contraction_hierarchy.o build/file_data_source.o build/geo_position_to_node.o build/graph_util.o build/id_mapper.o build/nested_dissection.o build/osm_decoder.o build/osm_graph_builder.o build/osm_profile.o build/osm_simple.o build/protobuf.o build/strongly_connected_component.o build/timer.o build/vector_io.o $(OMP_LDFLAGS) -lm -lz -pthread -o lib/libroutingkit.so
 
+.PHONY:
+clean:
+	$(RM) -rf bin build lib
