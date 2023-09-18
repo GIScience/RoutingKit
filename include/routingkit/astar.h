@@ -218,13 +218,14 @@ private:
 
 class EspHeuristic {
     public:
-        EspHeuristic(VisibilityGraph vg):
+        explicit EspHeuristic(VisibilityGraph &vg):
             visibility(&vg)
         {}
         unsigned operator()(unsigned id) const {
             // TODO: on each call, extend vg with lat/lon of id and
             //       run dijkstra to get ESP distance (the actual path
             //       is not needed)
+            visibility->size();// dummy call to avoid compilation warning "private field 'visibility' is not used"
             return 0; 
         }
     private:

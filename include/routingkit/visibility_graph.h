@@ -23,7 +23,7 @@ class VisibilityGraph {
       first_vertex = std::vector<unsigned>(num_nodes);
       latitudes = std::vector<float>(num_nodes); // TODO: need 2 more ?
       longitudes = std::vector<float>(num_nodes);// TODO: need 2 more ?
-      unsigned vertex_id;
+      unsigned vertex_id = 0;
       for (unsigned poly_id = 0; poly_id < polygons.size(); poly_id++) {
         first_vertex[poly_id] = vertex_id;
         for (unsigned i = 0; i <polygons[poly_id].size(); i+=2) {
