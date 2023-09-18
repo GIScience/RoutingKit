@@ -3,10 +3,12 @@
 #include <routingkit/min_max.h>
 #include <routingkit/astar.h>
 #include <routingkit/inverse_vector.h>
+#include <routingkit/polygon_io.h>
 
 #include "verify.h"
 
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <vector>
 
@@ -23,11 +25,12 @@ int main(int argc, char*argv[]){
 		string target_file;
 		string lat_file;
 		string lon_file;
+		string polygons_file;
 		string avoid_file;
 		string distance_file;
 
 		if(argc != 10){
-			cerr << argv[0] << " first_out_file head_file weight_file source_file target_file lat_file lon_file avoid_file distance_file" << endl;
+			cerr << argv[0] << " first_out_file head_file weight_file source_file target_file lat_file lon_file polygons_file avoid_file distance_file" << endl;
 			return 1;
 		}else{
 			first_out_file = argv[1];
@@ -37,8 +40,9 @@ int main(int argc, char*argv[]){
 			target_file = argv[5];
 			lat_file = argv[6];
 			lon_file = argv[7];
-			avoid_file = argv[8];
-			distance_file = argv[9];
+			polygons_file = argv[8];
+			avoid_file = argv[9];
+			distance_file = argv[10];
 		}
 
 		cout << "Loading graph ... " << flush;
@@ -50,6 +54,10 @@ int main(int argc, char*argv[]){
 		vector<float>longitude = load_vector<float>(lon_file);
 	    BitVector avoid_edges = load_bit_vector(avoid_file);
 	
+		cout << "done" << endl;
+
+		cout << "Loading polygons ... " << flush;
+        vector<vector<float>>polygons = load_polygons(polygons_file);
 		cout << "done" << endl;
 
 		cout << "Validity tests ... " << flush;
@@ -97,9 +105,13 @@ int main(int argc, char*argv[]){
 		long long time_sum = 0;
 
 		for(unsigned i=0; i<query_count; ++i){
+            VisibilityGraph vg(polygons);
+            vg.visibility_naive(); // TODO: optimization: we do not need to recompute the whole graph in each round
 
 			long long time = -get_micro_time();
-			auto heuristic = new BeelineDistanceHeuristic(latitude, longitude, target[i]);
+
+            vg.add_location(latitude[target[i]],longitude[target[i]]); 
+			auto heuristic = new EspHeuristic(vg);
 
 			astar.reset().add_source(source[i]).set_avoid_edges(&avoid_edges);
 			while(!astar.is_finished()){

@@ -74,6 +74,7 @@ int main(int argc, char*argv[]){
 		string line;
         unsigned line_num = 0;
 
+        // TODO: refactoring: maybe reuse polygon_io
 		while(std::getline(in, line)){
 			++line_num;
 			if(line.empty())
@@ -104,6 +105,7 @@ int main(int argc, char*argv[]){
 		in.seekg(0);
 		line_num = 0;
 
+        // TODO: refactoring: maybe reuse polygon_io
 		while(std::getline(in, line)){
 			++line_num;
 			if(line.empty())
