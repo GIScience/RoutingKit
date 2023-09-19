@@ -64,14 +64,19 @@ class VisibilityGraph {
               // ... check intersection of segment vw with polygon edge ij
               for (auto poly:polygons) {
                 for (unsigned i = 0, j = poly.size()/2 - 1; i < poly.size()/2; j=i++) {
-                  invisible = segments_intersect(p[2*v],p[2*v+1],q[2*w],q[2*w+1],
-                    poly[i*2],poly[i*2+1],poly[j*2],poly[j*2+1]);
-                  if (invisible) goto skip_further_obstacles;
-                  if ((p == poly) && (q == poly)) {
+                  float x1 = p[2*v], y1 = p[2*v+1];
+                  float x2 = q[2*w], y2 = q[2*w+1];
+                  float x3 = poly[i*2], y3 = poly[i*2+1];
+                  float x4 = poly[j*2], y4 = poly[j*2+1];
+                  // check for intersections only when all endpoints are different
+                  if ((x1!=x3 || y1!=y3) && (x1!=x4 || y1!=y4) && (x2!=x3 || y2!=y3) && (x2!=x4 || y2!=y4)) {
+                    invisible = segments_intersect(x1, y1, x2, y2, x3, y3, x4, y4);
+                    if (invisible) goto skip_further_obstacles;
+                  } else if ((p == poly) && (q == poly)) {
                     // vw might be completely in or out of the polygon
                     // compare signs of determinants of v+1 - v, v-1 - v, w - v
-                    float a_x = poly[(v+1)*2] - poly[v*2];
-                    float a_y = poly[(v+1)*2+1] - poly[v*2+1];
+                    float a_x = poly[((v+1)%(poly.size()/2))*2] - poly[v*2];
+                    float a_y = poly[((v+1)%(poly.size()/2))*2+1] - poly[v*2+1];
                     float b_x = poly[(((v+poly.size()/2-1))%(poly.size()/2))*2] - poly[v*2];
                     float b_y = poly[(((v+poly.size()/2-1))%(poly.size()/2))*2+1] - poly[v*2+1];
                     float c_x = poly[w*2] - poly[v*2];
@@ -85,7 +90,6 @@ class VisibilityGraph {
                       invisible = true;
                       goto skip_further_obstacles; 
                     }
-                                        
                   } 
                 }
               }
