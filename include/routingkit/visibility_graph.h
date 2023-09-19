@@ -1,13 +1,23 @@
 #ifndef VISIBILITY_GRAPH
 #define VISIBILITY_GRAPH
 
-#include <routingkit/segments_intersect.h>
+#include <routingkit/dijkstra.h>
 #include <routingkit/geo_dist.h>
+#include <routingkit/graph_util.h>
+#include <routingkit/permutation.h>
+#include <routingkit/segments_intersect.h>
+#include <routingkit/inverse_vector.h>
 #include <vector>
 #include <iostream>
 
 namespace RoutingKit {
 
+
+// TODO:
+// The polygons and the graph share the coordinates. However, after
+// sorting the graph for routing, the graph ids // differ from the ids
+// used for lat and lon, which still correspond
+// to the order in the polygons. We need to decide how to deal with this
 class VisibilityGraph {
   public:
     VisibilityGraph(std::vector<std::vector<float>> polygons):
@@ -20,7 +30,7 @@ class VisibilityGraph {
         num_nodes += p.size();
       }
 
-      first_vertex = std::vector<unsigned>(num_nodes);
+      first_vertex = std::vector<unsigned>(num_nodes + 1);
       latitudes = std::vector<float>(num_nodes); // TODO: need 2 more ?
       longitudes = std::vector<float>(num_nodes);// TODO: need 2 more ?
       unsigned vertex_id = 0;
@@ -39,6 +49,7 @@ class VisibilityGraph {
     //       and has lots of potential for performance improvements. For
     //       now, performance is secondary, because the graph is only build
     //       once for many queries.
+    // TODO: refactor this partially overlaps with visible_vertices
     void visibility_naive() {
       unsigned v_id = 0;
       // For each pair of vertices v, w ...
@@ -84,7 +95,7 @@ class VisibilityGraph {
                 std::cout << "  appending (" << v_id << "," << w_id << ")" << std::endl;
                 tails.push_back(v_id);
                 heads.push_back(w_id);
-                weights.push_back(geo_dist(latitudes[v_id],longitudes[v_id],latitudes[w_id],longitudes[w_id]));
+                weights.push_back(0.5 + geo_dist(latitudes[v_id],longitudes[v_id],latitudes[w_id],longitudes[w_id]));
               }
             }
           }
@@ -92,27 +103,12 @@ class VisibilityGraph {
       } 
     }
 
-    // TODO: refactor: this partially overlaps with visibility_naive()
-    void add_location(float lat, float lon) {
-      unsigned v_id = 0;
-      for (auto p: polygons) {
-        for (std::size_t v = 0; v < p.size()/2; v++) {
-          bool invisible = false;
-          for (auto poly:polygons) {
-            for (unsigned i = 0, j = poly.size()/2 - 1; i < poly.size()/2; j=i++) {
-               invisible = segments_intersect(p[2*v],p[2*v+1],lat,lon,
-                 poly[i*2],poly[i*2+1],poly[j*2],poly[j*2+1]);
-               if (invisible) goto skip_further_obstacles;
-            }
-          }
-        skip_further_obstacles:
-          if (!invisible) {
-            tails.push_back(v_id);
-            heads.push_back(num_nodes); 
-            weights.push_back(geo_dist(lat,lon,latitudes[v_id],longitudes[v_id]));
-          }
-          v_id++;
-        }
+    // Add links from visible nodes to target node
+    void add_target(float lat, float lon) {
+      for (unsigned vertex: visible_vertices(lat, lon)) {
+        tails.push_back(vertex);
+        heads.push_back(num_nodes);
+        weights.push_back(0.5 + geo_dist(lat,lon,latitudes[vertex],longitudes[vertex]));
       }
       latitudes.push_back(lat);
       longitudes.push_back(lon);
@@ -123,16 +119,76 @@ class VisibilityGraph {
         return heads.size();
     }
 
+    void sort_graph_for_routing() {
+        // TODO: Check whether this is the right permutation to be used
+        this->permutation = compute_inverse_sort_permutation_first_by_tail_then_by_head_and_apply_sort_to_tail(this->num_nodes,this->tails, this->heads);
+        this->heads = apply_inverse_permutation(permutation, std::move(this->heads));
+        this->weights = apply_inverse_permutation(permutation, std::move(this->weights));
+        this->first_out = invert_vector(this->tails, num_nodes);
+    }
+
+
+    unsigned target() {
+        assert(permutation[num_nodes - 1] == num_nodes - 1);
+        return num_nodes - 1; 
+    }
+
+    std::vector<unsigned> visible_vertices(float lat, float lon) {
+       std::vector<unsigned> ret;
+        for (unsigned p = 0; p < first_vertex.size(); p++) {
+            for (unsigned v = first_vertex[p]; v<first_vertex[p+1]; v++) {
+                bool invisible = false;
+                for (unsigned q = 0; q < first_vertex.size(); q++) {
+                    for (unsigned i = first_vertex[q], j=first_vertex[q+1] - 1; i<first_vertex[q+1]; j=i++) {
+                        invisible = segments_intersect(lat, lon, latitudes[v],longitudes[v],
+                            latitudes[i],longitudes[i],latitudes[j],longitudes[j]);
+                        if (invisible) goto skip_further_obstacles;
+                    }
+                }
+            skip_further_obstacles:
+                if (!invisible) {
+                   ret.push_back(v);
+                }
+            } 
+        }
+        return ret;
+    }
+
+    //
+    void set_source(float lat, float lon) {
+        // Cleanup old source
+        for (unsigned i = 0; i < first_out[num_nodes+1] - first_out[num_nodes]; i++) {
+            tails.pop_back();
+            heads.pop_back();
+            weights.pop_back();  
+        } 
+        // Add new source
+        std::vector<unsigned> visibles = visible_vertices(lat, lon);
+        for (unsigned vertex: visibles) {
+            tails.push_back(num_nodes);
+            heads.push_back(vertex); // TODO: Need to apply permutation here?
+            weights.push_back(0.5 + geo_dist(lat,lon,latitudes[vertex],longitudes[vertex]));
+        }
+        first_out[num_nodes + 1] = first_out[num_nodes] + visibles.size();
+        // TODO: need to append coordinates? If yes, also clean up
+    }
+
+    Dijkstra get_router() {
+        return Dijkstra(first_out, this->tails, this->heads);
+    }
+
+    std::vector<unsigned> weights; // TODO: encapsulation!
   private:
     std::vector<std::vector<float>> polygons;
     std::vector<unsigned>first_vertex;
     std::vector<float> latitudes;
     std::vector<float> longitudes;
+    std::vector<unsigned> permutation;
 
     unsigned num_nodes = 0;
+    std::vector<unsigned> first_out;
     std::vector<unsigned> heads;
     std::vector<unsigned> tails;
-    std::vector<float> weights;
 };
-}
+} // RoutingKit
 #endif

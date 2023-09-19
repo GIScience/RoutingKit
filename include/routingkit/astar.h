@@ -174,18 +174,6 @@ private:
 	const BitVector *avoid_edges;
 };
 
-class ScalarGetWeight{
-public:
-	explicit ScalarGetWeight(const std::vector<unsigned>&weight):weight(&weight){}
-
-	unsigned operator()(unsigned arc, unsigned departure_time)const{
-		(void)departure_time;
-		return (*weight)[arc];
-	}
-
-private:
-	const std::vector<unsigned>*weight;
-};
 
 class ZeroHeuristic {
 public:
@@ -218,17 +206,27 @@ private:
 
 class EspHeuristic {
     public:
-        explicit EspHeuristic(VisibilityGraph &vg):
+        EspHeuristic(const std::vector<float>&latitude, const std::vector<float>&longitude, unsigned target_id, VisibilityGraph &vg):
+            latitude(latitude),
+            longitude(longitude),
+            target_id(target_id), // TODO: do we need this?
             visibility(&vg)
         {}
+
         unsigned operator()(unsigned id) const {
-            // TODO: on each call, extend vg with lat/lon of id and
-            //       run dijkstra to get ESP distance (the actual path
-            //       is not needed)
-            visibility->size();// dummy call to avoid compilation warning "private field 'visibility' is not used"
-            return 0; 
+            visibility->set_source(latitude[id],longitude[id]);
+            auto dij = visibility->get_router();
+            while(!dij.is_finished()){
+                auto x = dij.settle(ScalarGetWeight(visibility->weights)).node;
+                if(x == visibility->target()) 
+                    break;
+            }
+            return dij.get_distance_to(visibility->target());
         }
     private:
+        const std::vector<float>latitude;
+        const std::vector<float>longitude;
+        const unsigned target_id;
         VisibilityGraph *visibility;
         
 };

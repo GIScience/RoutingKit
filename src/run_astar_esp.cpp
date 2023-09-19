@@ -110,8 +110,8 @@ int main(int argc, char*argv[]){
 
 			long long time = -get_micro_time();
 
-            vg.add_location(latitude[target[i]],longitude[target[i]]); 
-			auto heuristic = new EspHeuristic(vg);
+            vg.add_target(latitude[target[i]],longitude[target[i]]); 
+			auto heuristic = new EspHeuristic(latitude, longitude, target[i], vg);
 
 			astar.reset().add_source(source[i]).set_avoid_edges(&avoid_edges);
 			while(!astar.is_finished()){
