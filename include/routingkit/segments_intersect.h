@@ -6,9 +6,8 @@
 // see Franklin Antonio, Ch.IV.6 Faster line intersection. In: Graphic Gems III
 namespace RoutingKit {
 
-// TODO: fix issues with floating-point arithmetic
 bool segments_intersect(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) {
-    // segments have at common endpoints
+    // segments have common endpoints
     if ((x1==x3 && y1==y3) || (x1==x4 && y1==y4) || (x2==x3 && y2==y3) || (x2==x4 && y2==y4)) {
         return true;
     }
@@ -35,7 +34,8 @@ bool segments_intersect(float x1, float y1, float x2, float y2, float x3, float 
     } 
         
     // TODO: remove debug output after FP issues are fixed
-    if (rv) {
+    //if (rv) {
+    if (false) {
         std::cout << "  x1=" << x1 << " y1=" << y1 << " x2=" << x2 << " y2=" << y2 
             << " x3=" << x3 << " y3=" << y3 << " x4=" << x4 << " y4=" << y4 << std::endl
             << "    n1=(" << x1 << "-" << x3 << ")*(" << y3 << "-" << y4 << ")-("

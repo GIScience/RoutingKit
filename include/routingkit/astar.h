@@ -98,18 +98,31 @@ public:
 		was_popped.set(p.id);
         
 		for(unsigned a=(*first_out)[p.id]; a<(*first_out)[p.id+1]; ++a){
+            std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 			if((!was_popped.is_set((*head)[a]))&&(!avoid_edges->is_set(a))){
+            std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 				unsigned w = get_weight(a, p.key);
 				if(w < inf_weight){
+            std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 					unsigned score = tentative_distance[p.id] + w;
 					if (score < tentative_distance[(*head)[a]]) {
+            std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 						if(queue.contains_id((*head)[a])){
+            std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 							queue.decrease_key({(*head)[a], score + heuristic((*head)[a])});
 						} else {
+            std::cout << __FILE__ << ":" << __LINE__ << std::endl;
+            std::cout << " a:" << a << std::endl;
+            std::cout << " score:" << score << std::endl;
+            std::cout << " head[a]:" << (*head)[a] << std::endl;
 							queue.push({(*head)[a], score + heuristic((*head)[a])});
+            std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 						}
+            std::cout << __FILE__ << ":" << __LINE__ << std::endl;
                         predecessor_arc[(*head)[a]] = a;
+            std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 						tentative_distance[(*head)[a]] = score;
+            std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 					}
 				}
 			}

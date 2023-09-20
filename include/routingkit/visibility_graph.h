@@ -27,7 +27,7 @@ class VisibilityGraph {
       //       first_vertex/lats/longs representation
       num_nodes = 0;
       for (auto p: polygons) {
-        num_nodes += p.size();
+        num_nodes += p.size() / 2;
       }
 
       first_vertex = std::vector<unsigned>(num_nodes + 1);
@@ -60,7 +60,6 @@ class VisibilityGraph {
             for (std::size_t w = 0; w < q.size()/2; w++, w_id++) {
               if (v_id == w_id) continue; // Nothing to check
               bool invisible = false;
-              std::cout << "Segment: " << v_id << " " << w_id << std::endl;
               // ... check intersection of segment vw with polygon edge ij
               for (auto poly:polygons) {
                 for (unsigned i = 0, j = poly.size()/2 - 1; i < poly.size()/2; j=i++) {
@@ -72,7 +71,7 @@ class VisibilityGraph {
                   if ((x1!=x3 || y1!=y3) && (x1!=x4 || y1!=y4) && (x2!=x3 || y2!=y3) && (x2!=x4 || y2!=y4)) {
                     invisible = segments_intersect(x1, y1, x2, y2, x3, y3, x4, y4);
                     if (invisible) goto skip_further_obstacles;
-                  } else if ((p == poly) && (q == poly)) {
+                  } else if ((p == poly) && (q == poly) && (v+1 != w) && (v-1 != w)) {
                     // vw might be completely in or out of the polygon
                     // compare signs of determinants of v+1 - v, v-1 - v, w - v
                     float a_x = poly[((v+1)%(poly.size()/2))*2] - poly[v*2];
@@ -84,9 +83,7 @@ class VisibilityGraph {
                     float ab = a_x*b_y-b_x*a_y;
                     float ac = a_x*c_y-c_x*a_y;
                     float cb = c_x*b_y-b_x*c_y;
-                    // TODO: remove debugging output once FP-arithmetic issues are solved
                     if ((ab < 0  && ac <  0 && cb < 0) || ((ab >= 0) && (ac < 0 || cb < 0))) {
-                      std::cout << "  rejected: " << ab << " " << ac << " " << cb << std::endl;
                       invisible = true;
                       goto skip_further_obstacles; 
                     }
@@ -95,8 +92,6 @@ class VisibilityGraph {
               }
            skip_further_obstacles:  
               if (!invisible) {
-                // TODO: remove debugging output once FP-arithmetic issues are solved
-                std::cout << "  appending (" << v_id << "," << w_id << ")" << std::endl;
                 tails.push_back(v_id);
                 heads.push_back(w_id);
                 weights.push_back(0.5 + geo_dist(latitudes[v_id],longitudes[v_id],latitudes[w_id],longitudes[w_id]));
@@ -109,7 +104,9 @@ class VisibilityGraph {
 
     // Add links from visible nodes to target node
     void add_target(float lat, float lon) {
-      for (unsigned vertex: visible_vertices(lat, lon)) {
+      auto visibles = visible_vertices(lat, lon);
+      std::cout << "Adding arcs for target: " << visibles.size() << std::endl; 
+      for (unsigned vertex: visibles) {
         tails.push_back(vertex);
         heads.push_back(num_nodes);
         weights.push_back(0.5 + geo_dist(lat,lon,latitudes[vertex],longitudes[vertex]));
@@ -119,7 +116,11 @@ class VisibilityGraph {
       num_nodes++;
     }
 
-    int size() {
+    int node_count() {
+        return num_nodes;
+    }
+
+    int arc_count() {
         return heads.size();
     }
 
@@ -129,8 +130,16 @@ class VisibilityGraph {
         this->heads = apply_inverse_permutation(permutation, std::move(this->heads));
         this->weights = apply_inverse_permutation(permutation, std::move(this->weights));
         this->first_out = invert_vector(this->tails, num_nodes);
+        this->first_out[num_nodes+1]=first_out[num_nodes];
     }
 
+    bool has_arc(unsigned tail, unsigned head) {
+      for (unsigned i = first_out[tail]; i < first_out[tail+1]; i++) {
+        if (tails[i] == tail && heads[i] == head)
+            return true;
+      }
+      return false;
+    }
 
     unsigned target() {
         assert(permutation[num_nodes - 1] == num_nodes - 1);
@@ -144,9 +153,14 @@ class VisibilityGraph {
                 bool invisible = false;
                 for (unsigned q = 0; q < first_vertex.size(); q++) {
                     for (unsigned i = first_vertex[q], j=first_vertex[q+1] - 1; i<first_vertex[q+1]; j=i++) {
-                        invisible = segments_intersect(lat, lon, latitudes[v],longitudes[v],
-                            latitudes[i],longitudes[i],latitudes[j],longitudes[j]);
-                        if (invisible) goto skip_further_obstacles;
+                        float x1=lat, y1=lon;
+                        float x2=latitudes[v], y2=longitudes[v];
+                        float x3=latitudes[i], y3=longitudes[i];
+                        float x4=latitudes[j], y4=longitudes[j];
+                        if ((x1!=x3 || y1!=y3) && (x1!=x4 || y1!=y4) && (x2!=x3 || y2!=y3) && (x2!=x4 || y2!=y4)) {
+                            invisible = segments_intersect(x1,y1,x2,y2,x3,y3,x4,y4);
+                            if (invisible) goto skip_further_obstacles;
+                        }
                     }
                 }
             skip_further_obstacles:
@@ -161,6 +175,8 @@ class VisibilityGraph {
     //
     void set_source(float lat, float lon) {
         // Cleanup old source
+        std::cout << __FILE__ << ":" << __LINE__ << " cleaning up " 
+            << first_out[num_nodes+1]-first_out[num_nodes+1] << " nodes " << std::endl;
         for (unsigned i = 0; i < first_out[num_nodes+1] - first_out[num_nodes]; i++) {
             tails.pop_back();
             heads.pop_back();
@@ -168,6 +184,8 @@ class VisibilityGraph {
         } 
         // Add new source
         std::vector<unsigned> visibles = visible_vertices(lat, lon);
+        std::cout << __FILE__ << ":" << __LINE__ << " adding arcs for source: " 
+            << visibles.size() << std::endl;
         for (unsigned vertex: visibles) {
             tails.push_back(num_nodes);
             heads.push_back(vertex); // TODO: Need to apply permutation here?
@@ -178,7 +196,9 @@ class VisibilityGraph {
     }
 
     Dijkstra get_router() {
-        return Dijkstra(first_out, this->tails, this->heads);
+        Dijkstra dij(first_out, this->tails, this->heads);
+        dij.add_source(num_nodes);
+        return dij;
     }
 
     std::vector<unsigned> weights; // TODO: encapsulation!
