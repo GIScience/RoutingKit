@@ -30,7 +30,7 @@ class VisibilityGraph {
         num_nodes += p.size() / 2;
       }
 
-      first_vertex = std::vector<unsigned>(num_nodes + 1);
+      first_vertex = std::vector<unsigned>(polygons.size() + 1);
       latitudes = std::vector<float>(num_nodes); // TODO: need 2 more ?
       longitudes = std::vector<float>(num_nodes);// TODO: need 2 more ?
       unsigned vertex_id = 0;
