@@ -90,13 +90,8 @@ public:
 		return was_popped.is_set(x);
 	}
 
-	struct SettleResult{
-		unsigned node;
-		unsigned distance;
-	};
-
 	template<class GetWeightFunc, class HeuristicFunc>
-	SettleResult settle(const GetWeightFunc&get_weight, HeuristicFunc&heuristic){
+	Dijkstra::SettleResult settle(const GetWeightFunc&get_weight, HeuristicFunc&heuristic){
 		assert(!is_finished());
 
 		auto p = queue.pop();
@@ -119,7 +114,7 @@ public:
 				}
 			}
 		}
-		return SettleResult{p.id, tentative_distance[p.id]};
+		return Dijkstra::SettleResult{p.id, tentative_distance[p.id]};
 	}
 
 	unsigned get_distance_to(unsigned x) const {
