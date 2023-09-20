@@ -15,6 +15,9 @@ int main(){
   VisibilityGraph vg = VisibilityGraph(polys);
   vg.visibility_naive();
 
-	EXPECT(vg.size()==42);
-	return expect_failed;
+  EXPECT_CMP(vg.size(), ==, 42);
+
+  // TODO: test that all expected edges are present
+
+  return expect_failed;
 }
