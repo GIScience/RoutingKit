@@ -129,6 +129,9 @@ class VisibilityGraph {
         this->permutation = compute_inverse_sort_permutation_first_by_tail_then_by_head_and_apply_sort_to_tail(this->num_nodes,this->tails, this->heads);
         this->heads = apply_inverse_permutation(permutation, std::move(this->heads));
         this->weights = apply_inverse_permutation(permutation, std::move(this->weights));
+        //this->permutation = compute_sort_permutation_first_by_tail_then_by_head_and_apply_sort_to_tail(this->num_nodes,this->tails, this->heads);
+        //this->heads = apply_permutation(permutation, std::move(this->heads));
+        //this->weights = apply_permutation(permutation, std::move(this->weights));
         this->first_out = invert_vector(this->tails, num_nodes);
         this->first_out[num_nodes+1]=first_out[num_nodes];
     }
@@ -146,6 +149,9 @@ class VisibilityGraph {
         return num_nodes - 1; 
     }
 
+    // This methods returns the IDs of the visible vertices as
+    // stored in the polygon. These may be different from the
+    // vertex IDs in the visibilty graph after prepared for routing.
     std::vector<unsigned> visible_vertices(float lat, float lon) {
        std::vector<unsigned> ret;
         for (unsigned p = 0; p < first_vertex.size(); p++) {
@@ -175,8 +181,6 @@ class VisibilityGraph {
     //
     void set_source(float lat, float lon) {
         // Cleanup old source
-        std::cout << __FILE__ << ":" << __LINE__ << " cleaning up " 
-            << first_out[num_nodes+1]-first_out[num_nodes+1] << " nodes " << std::endl;
         for (unsigned i = 0; i < first_out[num_nodes+1] - first_out[num_nodes]; i++) {
             tails.pop_back();
             heads.pop_back();
@@ -184,11 +188,9 @@ class VisibilityGraph {
         } 
         // Add new source
         std::vector<unsigned> visibles = visible_vertices(lat, lon);
-        std::cout << __FILE__ << ":" << __LINE__ << " adding arcs for source: " 
-            << visibles.size() << std::endl;
         for (unsigned vertex: visibles) {
             tails.push_back(num_nodes);
-            heads.push_back(vertex); // TODO: Need to apply permutation here?
+            heads.push_back(vertex);
             weights.push_back(0.5 + geo_dist(lat,lon,latitudes[vertex],longitudes[vertex]));
         }
         first_out[num_nodes + 1] = first_out[num_nodes] + visibles.size();

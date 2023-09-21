@@ -97,35 +97,27 @@ public:
 		auto p = queue.pop();
 		was_popped.set(p.id);
         
+        std::cout << "Popped node " << p.id << std::endl;
 		for(unsigned a=(*first_out)[p.id]; a<(*first_out)[p.id+1]; ++a){
-            std::cout << __FILE__ << ":" << __LINE__ << std::endl;
+            std::cout << "Node " << (*head)[a] << " " << std::flush;
 			if((!was_popped.is_set((*head)[a]))&&(!avoid_edges->is_set(a))){
-            std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 				unsigned w = get_weight(a, p.key);
 				if(w < inf_weight){
-            std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 					unsigned score = tentative_distance[p.id] + w;
 					if (score < tentative_distance[(*head)[a]]) {
-            std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 						if(queue.contains_id((*head)[a])){
-            std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 							queue.decrease_key({(*head)[a], score + heuristic((*head)[a])});
+                            std::cout << "decreased" << std::flush;
 						} else {
-            std::cout << __FILE__ << ":" << __LINE__ << std::endl;
-            std::cout << " a:" << a << std::endl;
-            std::cout << " score:" << score << std::endl;
-            std::cout << " head[a]:" << (*head)[a] << std::endl;
+                            std::cout << "pushed" << std::flush;
 							queue.push({(*head)[a], score + heuristic((*head)[a])});
-            std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 						}
-            std::cout << __FILE__ << ":" << __LINE__ << std::endl;
                         predecessor_arc[(*head)[a]] = a;
-            std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 						tentative_distance[(*head)[a]] = score;
-            std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 					}
 				}
 			}
+            std::cout << std::endl;
 		}
 		return Dijkstra::SettleResult{p.id, tentative_distance[p.id]};
 	}

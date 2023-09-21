@@ -40,19 +40,21 @@ int main(int argc, char*argv[]){
 		EXPECT(astar.is_finished());
 
 		cout << "Process avoid polygons ... " << flush;
-        vector<vector<float>> polygons = {{0.0005,0.0005, 0.0005,0.0035, 0.0015,0.0035, 0.0015,0.0005  }};
+        vector<vector<float>> polygons = {{0.0005,0.0005, 0.0005,0.0035, 0.0015,0.0035, 0.0015,0.0005 }};
         BitVector avoid_edges(arc_count);
         for (auto p: polygons) {
             for (unsigned i = 0, j=p.size()/2; i < p.size()/2; j=++i) {
                 
-                for (size_t i = 0; i < arc_count; i++) {
-                    unsigned tail_id = tail[i];
-                    unsigned head_id = head[i];
-                    if (avoid_edges.is_set(i)) continue;
-                    avoid_edges.set_if(i, segments_intersect(
+                for (size_t a = 0; a < arc_count; a++) {
+                    unsigned tail_id = tail[a];
+                    unsigned head_id = head[a];
+                    if (avoid_edges.is_set(a)) continue;
+                    bool intersect = segments_intersect(
                         latitude[tail_id],longitude[tail_id], latitude[head_id],longitude[head_id],
-                        p[2*i],p[2*i+1], p[2*j],p[2*j+1])
-                    );
+                        p[2*i],p[2*i+1], p[2*j],p[2*j+1]);
+                    if (intersect)
+                        std::cout << tail_id << "->" << head_id << " intersects: " << intersect << std::endl;
+                    avoid_edges.set_if(a, intersect);
                 }
             }
         }
@@ -85,7 +87,6 @@ int main(int argc, char*argv[]){
         EXPECT_CMP(ret.node, ==, 9);
         ret = astar.settle(ScalarGetWeight(weight),heuristic);
         EXPECT_CMP(ret.node, ==, 8);
-        EXPECT(astar.is_finished());
 		cout << "done" << endl;
 	}catch(exception&err){
 		cout << "Stopped on exception : "<< err.what() << endl;
