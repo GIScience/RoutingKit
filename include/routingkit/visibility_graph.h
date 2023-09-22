@@ -153,39 +153,40 @@ class VisibilityGraph {
     // stored in the polygon. These may be different from the
     // vertex IDs in the visibilty graph after prepared for routing.
     std::vector<unsigned> visible_vertices(float lat, float lon) {
-       std::vector<unsigned> ret;
-        for (unsigned p = 0; p < first_vertex.size(); p++) {
-            for (unsigned v = first_vertex[p]; v<first_vertex[p+1]; v++) {
-                bool invisible = false;
-                for (unsigned q = 0; q < first_vertex.size(); q++) {
-                    for (unsigned i = first_vertex[q], j=first_vertex[q+1] - 1; i<first_vertex[q+1]; j=i++) {
-                        float y1=lat, x1=lon;
-                        float y2=latitudes[v], x2=longitudes[v];
-                        float y3=latitudes[i], x3=longitudes[i];
-                        float y4=latitudes[j], x4=longitudes[j];
-                        if ((x1!=x3 || y1!=y3) && (x1!=x4 || y1!=y4) && (x2!=x3 || y2!=y3) && (x2!=x4 || y2!=y4)) {
-                            invisible = segments_intersect(x1,y1,x2,y2,x3,y3,x4,y4);
-                            if (invisible) goto skip_further_obstacles;
-                        }
+        std::vector<unsigned> ret;
+        for (unsigned v = 0; v < num_nodes; v++) {
+            bool invisible = false;
+            for (unsigned q = 0; q < first_vertex.size(); q++) {
+                for (unsigned i = first_vertex[q], j=first_vertex[q+1] - 1; i<first_vertex[q+1]; j=i++) {
+                    float y1=lat, x1=lon;
+                    float y2=latitudes[v], x2=longitudes[v];
+                    float y3=latitudes[i], x3=longitudes[i];
+                    float y4=latitudes[j], x4=longitudes[j];
+                    if ((x1!=x3 || y1!=y3) && (x1!=x4 || y1!=y4) && (x2!=x3 || y2!=y3) && (x2!=x4 || y2!=y4)) {
+                        invisible = segments_intersect(x1,y1,x2,y2,x3,y3,x4,y4);
+                        if (invisible) goto skip_further_obstacles;
                     }
                 }
-            skip_further_obstacles:
-                if (!invisible) {
-                   ret.push_back(v);
-                }
-            } 
+            }
+        skip_further_obstacles:
+            if (!invisible) {
+               ret.push_back(v);
+            }
         }
         return ret;
     }
 
-    //
     void set_source(float lat, float lon) {
-        // Cleanup old source
-        for (unsigned i = 0; i < first_out[num_nodes+1] - first_out[num_nodes]; i++) {
-            tails.pop_back();
-            heads.pop_back();
-            weights.pop_back();  
-        } 
+        // Cleanup old source except for the first time
+        if (first_out.size() == num_nodes + 1) {
+            first_out.resize(num_nodes + 2);
+        } else {
+            for (unsigned i = 0; i < first_out[num_nodes+1] - first_out[num_nodes]; i++) {
+                tails.pop_back();
+                heads.pop_back();
+                weights.pop_back();
+            }
+        }
         // Add new source
         std::vector<unsigned> visibles = visible_vertices(lat, lon);
         for (unsigned vertex: visibles) {
@@ -194,13 +195,42 @@ class VisibilityGraph {
             weights.push_back(0.5 + geo_dist(lat,lon,latitudes[vertex],longitudes[vertex]));
         }
         first_out[num_nodes + 1] = first_out[num_nodes] + visibles.size();
-        // TODO: need to append coordinates? If yes, also clean up
     }
 
     Dijkstra get_router() {
         Dijkstra dij(first_out, this->tails, this->heads);
         dij.add_source(num_nodes);
         return dij;
+    }
+
+    void print_graph(bool all) {
+        std::cout << "n = " << num_nodes << std::endl;
+        std::cout << "first_out = {";
+        for (unsigned i = 0; i < first_out.size(); i++)
+            std::cout << first_out[i] << ", ";
+        std::cout << "}" << std::endl;
+        std::cout << "heads = {";
+        for (unsigned i = 0; i < heads.size(); i++)
+            std::cout << heads[i] << ", ";
+        std::cout << "}" << std::endl;
+        if (!all) return;
+
+        std::cout << "tails = {";
+        for (unsigned i = 0; i < tails.size(); i++)
+            std::cout << tails[i] << ", ";
+        std::cout << "}" << std::endl;
+        std::cout << "weights = {";
+        for (unsigned i = 0; i < weights.size(); i++)
+            std::cout << weights[i] << ", ";
+        std::cout << "}" << std::endl;
+        std::cout << "latitudes = {";
+        for (unsigned i = 0; i < latitudes.size(); i++)
+            std::cout << latitudes[i] << ", ";
+        std::cout << "}" << std::endl;
+        std::cout << "longitudes = {";
+        for (unsigned i = 0; i < longitudes.size(); i++)
+            std::cout << longitudes[i] << ", ";
+        std::cout << "}" << std::endl;
     }
 
     std::vector<unsigned> weights; // TODO: encapsulation!
