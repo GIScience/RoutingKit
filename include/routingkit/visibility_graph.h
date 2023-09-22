@@ -159,10 +159,10 @@ class VisibilityGraph {
                 bool invisible = false;
                 for (unsigned q = 0; q < first_vertex.size(); q++) {
                     for (unsigned i = first_vertex[q], j=first_vertex[q+1] - 1; i<first_vertex[q+1]; j=i++) {
-                        float x1=lat, y1=lon;
-                        float x2=latitudes[v], y2=longitudes[v];
-                        float x3=latitudes[i], y3=longitudes[i];
-                        float x4=latitudes[j], y4=longitudes[j];
+                        float y1=lat, x1=lon;
+                        float y2=latitudes[v], x2=longitudes[v];
+                        float y3=latitudes[i], x3=longitudes[i];
+                        float y4=latitudes[j], x4=longitudes[j];
                         if ((x1!=x3 || y1!=y3) && (x1!=x4 || y1!=y4) && (x2!=x3 || y2!=y3) && (x2!=x4 || y2!=y4)) {
                             invisible = segments_intersect(x1,y1,x2,y2,x3,y3,x4,y4);
                             if (invisible) goto skip_further_obstacles;

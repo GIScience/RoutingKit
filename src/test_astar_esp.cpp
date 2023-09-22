@@ -14,11 +14,11 @@ int main(int argc, char*argv[]){
     // We consider the following graph with the rectangular avoid
     // area marked by X, routing from node 1 to node 8.
     //
-    // 10 -- 9 -- 8 -- 7 -- 6
-    //  |    XXXXXXXXXX|XXX |
-    // 11    XXXXXXXX 12 XX 5
-    //  |    XXXXXXXXXX|XXX |
-    //  0 -- 1 -- 2 -- 3 -- 4
+    // 10 -- 9 --(8)-- 7 -- 6
+    //  |  XXXXXXXXXXXX|XX  |
+    // 11  XXXXXXXXXX 12 X  5
+    //  |  XXXXXXXXXXXX|XX  |
+    //  0 --(1)-- 2 -- 3 -- 4
 
     vector<unsigned> first_out = { 0, 2, 4, 6, 9, 11, 13, 15, 18, 20, 22, 24, 26, 28};
     vector<unsigned> head = { 1, 11, 0, 2, 1, 3, 2, 4, 12, 3, 5, 4, 6, 5, 7, 6, 8, 12, 7, 9, 8, 10, 9, 11, 0, 10, 3, 7};
@@ -39,26 +39,27 @@ int main(int argc, char*argv[]){
 		Astar astar(first_out, tail, head);
 		EXPECT(astar.is_finished());
 
-		cout << "Process avoid polygons ... " << flush;
+		cout << "Process avoid polygons ... " << endl << flush;
         vector<vector<float>> polygons = {{0.0005,0.0005, 0.0005,0.0035, 0.0015,0.0035, 0.0015,0.0005 }};
         BitVector avoid_edges(arc_count);
         for (auto p: polygons) {
-            for (unsigned i = 0, j=p.size()/2; i < p.size()/2; j=++i) {
-                
+            for (unsigned i = 0, j=p.size()/2-1; i < p.size()/2; j=i++) {
                 for (size_t a = 0; a < arc_count; a++) {
                     unsigned tail_id = tail[a];
                     unsigned head_id = head[a];
                     if (avoid_edges.is_set(a)) continue;
-                    bool intersect = segments_intersect(
-                        latitude[tail_id],longitude[tail_id], latitude[head_id],longitude[head_id],
-                        p[2*i],p[2*i+1], p[2*j],p[2*j+1]);
+                    float y1 = latitude[tail_id], x1 = longitude[tail_id];
+                    float y2 = latitude[head_id], x2 = longitude[head_id];
+                    float y3 = p[2*i],           x3 = p[2*i+1];
+                    float y4 = p[2*j],           x4 = p[2*j+1];
+                    bool intersect = segments_intersect(x1,y1, x2,y2, x3,y3, x4,y4);
                     if (intersect)
-                        std::cout << tail_id << "->" << head_id << " intersects: " << intersect << std::endl;
+                        std::cout << "  " << tail_id << "->" << head_id << " intersects: " << i << "-" << j << std::endl;
                     avoid_edges.set_if(a, intersect);
                 }
             }
         }
-		cout << "done" << endl;
+		cout << "... done" << endl;
 
         cout << "Testing ..." << flush;
         unsigned source_node = 1;

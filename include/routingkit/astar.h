@@ -104,14 +104,17 @@ public:
 				unsigned w = get_weight(a, p.key);
 				if(w < inf_weight){
 					unsigned score = tentative_distance[p.id] + w;
+					std::cout << "(s=" << score << ") " << std::flush;
 					if (score < tentative_distance[(*head)[a]]) {
+						unsigned h = heuristic((*head)[a]);
 						if(queue.contains_id((*head)[a])){
-							queue.decrease_key({(*head)[a], score + heuristic((*head)[a])});
-                            std::cout << "decreased" << std::flush;
+							queue.decrease_key({(*head)[a], score + h});
+                            std::cout << "decreased";
 						} else {
-                            std::cout << "pushed" << std::flush;
-							queue.push({(*head)[a], score + heuristic((*head)[a])});
+							queue.push({(*head)[a], score + h});
+							std::cout << "pushed";
 						}
+						std::cout << " (h=" << h << ")" << std::flush;
                         predecessor_arc[(*head)[a]] = a;
 						tentative_distance[(*head)[a]] = score;
 					}
