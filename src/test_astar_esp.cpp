@@ -50,8 +50,8 @@ int main(int argc, char*argv[]){
                     if (avoid_edges.is_set(a)) continue;
                     float y1 = latitude[tail_id], x1 = longitude[tail_id];
                     float y2 = latitude[head_id], x2 = longitude[head_id];
-                    float y3 = p[2*i],           x3 = p[2*i+1];
-                    float y4 = p[2*j],           x4 = p[2*j+1];
+                    float y3 = p[2*i],            x3 = p[2*i+1];
+                    float y4 = p[2*j],            x4 = p[2*j+1];
                     bool intersect = segments_intersect(x1,y1, x2,y2, x3,y3, x4,y4);
                     if (intersect)
                         std::cout << "  " << tail_id << "->" << head_id << " intersects: " << i << "-" << j << std::endl;

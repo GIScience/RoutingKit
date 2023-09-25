@@ -32,20 +32,6 @@ bool segments_intersect(float x1, float y1, float x2, float y2, float x3, float 
         rv = (0 >= numerator1) && (numerator1 >= denominator)
             && (0 >= numerator2) && (numerator2 >= denominator);
     } 
-        
-    // TODO: remove debug output after FP issues are fixed
-    //if (rv) {
-    if (false) {
-        std::cout << "  x1=" << x1 << " y1=" << y1 << " x2=" << x2 << " y2=" << y2 
-            << " x3=" << x3 << " y3=" << y3 << " x4=" << x4 << " y4=" << y4 << std::endl
-            << "    n1=(" << x1 << "-" << x3 << ")*(" << y3 << "-" << y4 << ")-("
-            << y1 << "-" << y3 <<")*(" << x3 << "-" << x4 <<")="<< numerator1 << std::endl
-            << "    n2=(" << x1 << "-" << x3 << ")*(" << y1 << "-" << y2 << ")-(" 
-            << y1 << "-" << y3 << ")*(" << x1 << "-" << x2 <<")=" << numerator2 << std::endl
-            << "    d =(" << x1 << "-" << x2 << ")*(" << y3 << "-" << y4 << ")-("
-            << y1 << "-" << y2 << ")*(" << x3 << "-" << x4 <<")=" << denominator << std::endl
-            << "  intersect="  << ((rv)?"yes":"no") << std::endl;
-    }
     return rv;
 }
 }

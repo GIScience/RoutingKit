@@ -15,24 +15,20 @@ namespace RoutingKit {
 
 // TODO:
 // The polygons and the graph share the coordinates. However, after
-// sorting the graph for routing, the graph ids // differ from the ids
-// used for lat and lon, which still correspond
-// to the order in the polygons. We need to decide how to deal with this
+// sorting the graph for routing, the graph ids differ from the ids
+// used for lat and lon, which still correspond to the order in the
+// polygons. We need to decide how to deal with this.
 class VisibilityGraph {
   public:
-    VisibilityGraph(std::vector<std::vector<float>> polygons):
-      polygons(polygons){
-
-      // TODO: remove polygon representation in favor of the following
-      //       first_vertex/lats/longs representation
+    VisibilityGraph(std::vector<std::vector<float>> polygons) {
       num_nodes = 0;
       for (auto p: polygons) {
         num_nodes += p.size() / 2;
       }
 
       first_vertex = std::vector<unsigned>(polygons.size() + 1);
-      latitudes = std::vector<float>(num_nodes); // TODO: need 2 more ?
-      longitudes = std::vector<float>(num_nodes);// TODO: need 2 more ?
+      latitudes = std::vector<float>(num_nodes + 1);
+      longitudes = std::vector<float>(num_nodes + 1);
       unsigned vertex_id = 0;
       for (unsigned poly_id = 0; poly_id < polygons.size(); poly_id++) {
         first_vertex[poly_id] = vertex_id;
@@ -51,35 +47,35 @@ class VisibilityGraph {
     //       once for many queries.
     // TODO: refactor this partially overlaps with visible_vertices
     void visibility_naive() {
-      unsigned v_id = 0;
       // For each pair of vertices v, w ...
-      for (auto p: polygons) {
-        for (std::size_t v = 0; v < p.size()/2; v++, v_id++) {
-          unsigned w_id = 0;
-          for (auto q: polygons) {
-            for (std::size_t w = 0; w < q.size()/2; w++, w_id++) {
-              if (v_id == w_id) continue; // Nothing to check
+      for (unsigned p_id = 0; p_id < first_vertex.size()-1; p_id++) {
+        for (std::size_t v = first_vertex[p_id]; v < first_vertex[p_id+1]; v++) {
+          for (unsigned q_id = 0; q_id < first_vertex.size()-1; q_id++) {
+            for (std::size_t w = first_vertex[q_id]; w < first_vertex[q_id+1]; w++) {
+              if (v == w) continue; // Nothing to check
               bool invisible = false;
               // ... check intersection of segment vw with polygon edge ij
-              for (auto poly:polygons) {
-                for (unsigned i = 0, j = poly.size()/2 - 1; i < poly.size()/2; j=i++) {
-                  float x1 = p[2*v], y1 = p[2*v+1];
-                  float x2 = q[2*w], y2 = q[2*w+1];
-                  float x3 = poly[i*2], y3 = poly[i*2+1];
-                  float x4 = poly[j*2], y4 = poly[j*2+1];
+              for (unsigned poly = 0; poly < first_vertex.size()-1; poly++) {
+                for (unsigned i = first_vertex[poly], j = first_vertex[poly+1]-1; i < first_vertex[poly+1]; j=i++) {
+                  float y1 = latitudes[v], x1 = longitudes[v];
+                  float y2 = latitudes[w], x2 = longitudes[w];
+                  float y3 = latitudes[i], x3 = longitudes[i];
+                  float y4 = latitudes[j], x4 = longitudes[j];
                   // check for intersections only when all endpoints are different
                   if ((x1!=x3 || y1!=y3) && (x1!=x4 || y1!=y4) && (x2!=x3 || y2!=y3) && (x2!=x4 || y2!=y4)) {
                     invisible = segments_intersect(x1, y1, x2, y2, x3, y3, x4, y4);
                     if (invisible) goto skip_further_obstacles;
-                  } else if ((p == poly) && (q == poly) && (v+1 != w) && (v-1 != w)) {
+                  } else if ((p_id == poly) && (q_id == poly) && (v+1 != w) && (v-1 != w)) {
                     // vw might be completely in or out of the polygon
                     // compare signs of determinants of v+1 - v, v-1 - v, w - v
-                    float a_x = poly[((v+1)%(poly.size()/2))*2] - poly[v*2];
-                    float a_y = poly[((v+1)%(poly.size()/2))*2+1] - poly[v*2+1];
-                    float b_x = poly[(((v+poly.size()/2-1))%(poly.size()/2))*2] - poly[v*2];
-                    float b_y = poly[(((v+poly.size()/2-1))%(poly.size()/2))*2+1] - poly[v*2+1];
-                    float c_x = poly[w*2] - poly[v*2];
-                    float c_y = poly[w*2+1] - poly[v*2+1];
+                    unsigned pred_v = (v > first_vertex[poly])?v-1:first_vertex[poly+1]-1;
+                    unsigned succ_v = (v < first_vertex[poly+1]-1)?v+1:first_vertex[poly];
+                    float a_x = latitudes[succ_v] - latitudes[v];
+                    float a_y = longitudes[succ_v] - longitudes[succ_v];
+                    float b_x = latitudes[pred_v] - latitudes[pred_v];
+                    float b_y = longitudes[pred_v] - longitudes[pred_v];
+                    float c_x = latitudes[w] - latitudes[v];
+                    float c_y = longitudes[w] - longitudes[v];
                     float ab = a_x*b_y-b_x*a_y;
                     float ac = a_x*c_y-c_x*a_y;
                     float cb = c_x*b_y-b_x*c_y;
@@ -92,9 +88,9 @@ class VisibilityGraph {
               }
            skip_further_obstacles:  
               if (!invisible) {
-                tails.push_back(v_id);
-                heads.push_back(w_id);
-                weights.push_back(0.5 + geo_dist(latitudes[v_id],longitudes[v_id],latitudes[w_id],longitudes[w_id]));
+                tails.push_back(v);
+                heads.push_back(w);
+                weights.push_back(0.5 + geo_dist(latitudes[v],longitudes[v],latitudes[w],longitudes[w]));
               }
             }
           }
@@ -129,9 +125,6 @@ class VisibilityGraph {
         this->permutation = compute_inverse_sort_permutation_first_by_tail_then_by_head_and_apply_sort_to_tail(this->num_nodes,this->tails, this->heads);
         this->heads = apply_inverse_permutation(permutation, std::move(this->heads));
         this->weights = apply_inverse_permutation(permutation, std::move(this->weights));
-        //this->permutation = compute_sort_permutation_first_by_tail_then_by_head_and_apply_sort_to_tail(this->num_nodes,this->tails, this->heads);
-        //this->heads = apply_permutation(permutation, std::move(this->heads));
-        //this->weights = apply_permutation(permutation, std::move(this->weights));
         this->first_out = invert_vector(this->tails, num_nodes);
         this->first_out[num_nodes+1]=first_out[num_nodes];
     }
@@ -235,7 +228,6 @@ class VisibilityGraph {
 
     std::vector<unsigned> weights; // TODO: encapsulation!
   private:
-    std::vector<std::vector<float>> polygons;
     std::vector<unsigned>first_vertex;
     std::vector<float> latitudes;
     std::vector<float> longitudes;

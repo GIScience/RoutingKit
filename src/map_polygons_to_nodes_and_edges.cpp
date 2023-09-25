@@ -4,6 +4,7 @@
 #include <routingkit/edge_crosses_polygon.h>
 #include <routingkit/inverse_vector.h>
 #include <routingkit/min_max.h>
+#include <routingkit/polygon_io.h>
 
 #include <iostream>
 #include <fstream>
@@ -23,10 +24,11 @@ int main(int argc, char*argv[]){
 		string lat_file;
 		string lon_file;
 		string polygons_file;
-		string avoid_file;
+		string avoid_nodes_file;
+		string avoid_edges_file;
 
-		if(argc != 7){
-			cerr << argv[0] << " first_out head latitudes longitudes polygons avoid_file" << endl;
+		if(argc != 8){
+			cerr << argv[0] << " first_out head latitudes longitudes polygons avoid__nodes_file avoid_edges_file" << endl;
 			return 1;
 		}else{
 			first_out_file = argv[1];
@@ -34,7 +36,8 @@ int main(int argc, char*argv[]){
 			lat_file = argv[3];
 			lon_file = argv[4];
 			polygons_file = argv[5];
-			avoid_file = argv[6];
+			avoid_nodes_file = argv[6];
+			avoid_edges_file = argv[7];
 		}
 
 		cout << "Loading data ... " << flush;
@@ -69,61 +72,16 @@ int main(int argc, char*argv[]){
 		if(!in)
 			throw runtime_error("Can not open \""+polygons_file+"\"");
 
-		cout << "Mapping nodes ... " << flush;
+		cout << "Mapping nodes and edges ... " << flush;
 
-		string line;
-        unsigned line_num = 0;
+        vector<vector<float>> polys = load_polygons(polygons_file);
 
-        // TODO: refactoring: maybe reuse polygon_io
-		while(std::getline(in, line)){
-			++line_num;
-			if(line.empty())
-				continue;
-
-			std::istringstream lin(line);
-			
-			vector<float> poly;
-
-			// Read polygon
-			while (!lin.eof()) {
-				float latitude, longitude;
-				if(!(lin >> latitude >> longitude))
-					throw std::runtime_error("Can not parse line num "+std::to_string(line_num)+" \""+line+"\" in polygon file.");
-				poly.push_back(latitude);
-				poly.push_back(longitude);
-			}
-
+        for (auto poly:polys) {
 			// Check point in polygon
 			for (size_t i = 0; i < node_count; i++) {
 				if (avoid_nodes.is_set(i)) continue;
 				avoid_nodes.set_if(i, point_in_polygon(lat[i], lon[i], poly));
 			}
-		}
-		cout << "done" << endl << "Mapping edges ... " << flush;
-
-		in.clear();
-		in.seekg(0);
-		line_num = 0;
-
-        // TODO: refactoring: maybe reuse polygon_io
-		while(std::getline(in, line)){
-			++line_num;
-			if(line.empty())
-				continue;
-
-			std::istringstream lin(line);
-			
-			vector<float> poly;
-
-			// Read polygon
-			while (!lin.eof()) {
-				float latitude, longitude;
-				if(!(lin >> latitude >> longitude))
-					throw std::runtime_error("Can not parse line num "+std::to_string(line_num)+" \""+line+"\" in polygon file.");
-				poly.push_back(latitude);
-				poly.push_back(longitude);
-			}
-
 			// Check edge in polygon
 			for (size_t i = 0; i < arc_count; i++) {
 				unsigned tail_id = tail[i];
@@ -135,8 +93,9 @@ int main(int argc, char*argv[]){
 		}
 		cout << "done" << endl;
 
-		cout << "Saving file ... " << flush;
-		save_bit_vector(avoid_file, avoid_edges);
+		cout << "Saving files ... " << flush;
+		save_bit_vector(avoid_nodes_file, avoid_nodes);
+		save_bit_vector(avoid_edges_file, avoid_edges);
 		cout << "done" << endl;
 
 	}catch(exception&err){
