@@ -31,6 +31,7 @@ public:
 	Dijkstra&reset(){
 		queue.clear();
 		was_popped.reset_all();
+        settle_count = 0;
 		return *this;
 	}
 
@@ -39,6 +40,8 @@ public:
 		assert(first_out.front() == 0);
 		assert(first_out.back() == tail.size());
 		assert(first_out.back() == head.size());
+
+        this->settle_count = 0;
 
 		if(this->first_out != nullptr && first_out.size() == this->first_out->size()){
 			this->first_out = &first_out;
@@ -104,6 +107,7 @@ public:
 				}
 			}
 		}
+        settle_count++;
 		return SettleResult{p.id, p.key};
 	}
 
@@ -146,12 +150,18 @@ public:
 		return path;
 	}
 
+    unsigned get_settle_count() const {
+        return settle_count;
+    }
+
+
 private:
 	std::vector<unsigned>tentative_distance;
 	std::vector<unsigned>predecessor_arc;
 
 	TimestampFlags was_popped;
 	MinIDQueue queue;
+    unsigned settle_count = 0;
 
 	const std::vector<unsigned>*first_out;
 	const std::vector<unsigned>*tail;

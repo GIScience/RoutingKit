@@ -28,9 +28,12 @@ int main(int argc, char*argv[]){
 		string polygons_file;
 		string avoid_file;
 		string distance_file;
+		string settlings_file;
+        bool save_settlings;
 
-		if(argc != 10){
+		if(argc < 10 || argc > 11){
 			cerr << argv[0] << " first_out_file head_file weight_file source_file target_file lat_file lon_file polygons_file avoid_file distance_file" << endl;
+			cerr << argv[0] << " first_out_file head_file weight_file source_file target_file lat_file lon_file polygons_file avoid_file distance_file settlings_file" << endl;
 			return 1;
 		}else{
 			first_out_file = argv[1];
@@ -43,6 +46,12 @@ int main(int argc, char*argv[]){
 			polygons_file = argv[8];
 			avoid_file = argv[9];
 			distance_file = argv[10];
+            if (argc == 11) {
+                settlings_file = argv[11];
+                save_settlings = true;
+            } else {
+                save_settlings = false;
+            }
 		}
 
 		cout << "Loading graph ... " << flush;
@@ -98,6 +107,7 @@ int main(int argc, char*argv[]){
 		cout << "Loaded " << query_count << " test queries" << endl;
 
 		vector<unsigned>distance(query_count);
+		vector<unsigned>settlings(query_count);
 
 		cout << "Running test queries ... " << flush;
 
@@ -120,6 +130,7 @@ int main(int argc, char*argv[]){
 					break;
 			}
 			distance[i] = astar.get_distance_to(target[i]);
+            settlings[i] = astar.get_settle_count();
 
 			time += get_micro_time();
 
@@ -133,6 +144,9 @@ int main(int argc, char*argv[]){
 		cout << "avg running time : " << time_sum/query_count << "musec" << endl;
 
 		save_vector(distance_file, distance);
+        if (save_settlings) {
+            save_vector(settlings_file, settlings);
+        }
 
 	}catch(exception&err){
 		cerr << "Stopped on exception : " << err.what() << endl;
