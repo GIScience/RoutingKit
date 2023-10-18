@@ -28,6 +28,12 @@ int main(int argc, char*argv[]){
     vector<float> longitude = { 0.0, 0.001, 0.002, 0.003, 0.004, 0.004, 0.004, 0.003, 0.002, 0.001, 0.0, 0.0, 0.003};
 
     unsigned arc_count = head.size();
+    BitVector expected_avoid_edges(arc_count);
+    expected_avoid_edges.reset_all();
+    expected_avoid_edges.set(8);  // 3->12
+    expected_avoid_edges.set(17); // 7->12
+    expected_avoid_edges.set(26); // 12->3
+    expected_avoid_edges.set(27); // 12->7
 
 	try{
 		cout << "Validity tests ... " << flush;
@@ -39,7 +45,7 @@ int main(int argc, char*argv[]){
 		Astar astar(first_out, tail, head);
 		EXPECT(astar.is_finished());
 
-		cout << "Process avoid polygons ... " << endl << flush;
+		cout << "Process avoid polygons ... " << flush;
         vector<vector<float>> polygons = {{0.0005,0.0005, 0.0005,0.0035, 0.0015,0.0035, 0.0015,0.0005 }};
         BitVector avoid_edges(arc_count);
         for (auto p: polygons) {
@@ -53,13 +59,12 @@ int main(int argc, char*argv[]){
                     float y3 = p[2*i],            x3 = p[2*i+1];
                     float y4 = p[2*j],            x4 = p[2*j+1];
                     bool intersect = segments_intersect(x1,y1, x2,y2, x3,y3, x4,y4);
-                    if (intersect)
-                        std::cout << "  " << tail_id << "->" << head_id << " intersects: " << i << "-" << j << std::endl;
                     avoid_edges.set_if(a, intersect);
                 }
             }
         }
-		cout << "... done" << endl;
+		cout << "done" << endl;
+        EXPECT(expected_avoid_edges==avoid_edges);
 
         cout << "Testing ..." << flush;
         unsigned source_node = 1;
@@ -69,13 +74,16 @@ int main(int argc, char*argv[]){
         vg.visibility_naive();
         EXPECT_CMP(vg.arc_count(), ==, 8);
         vg.add_target(latitude[target_node],longitude[target_node]);
-        cout << __FILE__ << ":" << __LINE__ << " arc-count: " << vg.arc_count() << endl;
+        EXPECT_CMP(vg.arc_count(), ==, 10);
         vg.sort_graph_for_routing();
 
         astar.add_source(source_node, 0).set_avoid_edges(&avoid_edges);
 
         EspHeuristic heuristic(latitude, longitude, target_node, vg);
         
+        for (int i = 0; i < 13; i++) {
+            cout << "Heuristic for node " << i << " is " << heuristic(i) <<endl;
+        }
         auto ret = astar.settle(ScalarGetWeight(weight),heuristic);
         EXPECT_CMP(ret.node, ==, 1);
         ret = astar.settle(ScalarGetWeight(weight),heuristic);

@@ -31,7 +31,7 @@ int main(int argc, char*argv[]){
 		string settlings_file;
         bool save_settlings;
 
-		if(argc < 10 || argc > 11){
+		if(argc < 11 || argc > 12){
 			cerr << argv[0] << " first_out_file head_file weight_file source_file target_file lat_file lon_file polygons_file avoid_file distance_file" << endl;
 			cerr << argv[0] << " first_out_file head_file weight_file source_file target_file lat_file lon_file polygons_file avoid_file distance_file settlings_file" << endl;
 			return 1;

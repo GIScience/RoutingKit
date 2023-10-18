@@ -49,9 +49,9 @@ class VisibilityGraph {
     void visibility_naive() {
       // For each pair of vertices v, w ...
       for (unsigned p_id = 0; p_id < first_vertex.size()-1; p_id++) {
-        for (std::size_t v = first_vertex[p_id]; v < first_vertex[p_id+1]; v++) {
+        for (unsigned v = first_vertex[p_id]; v < first_vertex[p_id+1]; v++) {
           for (unsigned q_id = 0; q_id < first_vertex.size()-1; q_id++) {
-            for (std::size_t w = first_vertex[q_id]; w < first_vertex[q_id+1]; w++) {
+            for (unsigned w = first_vertex[q_id]; w < first_vertex[q_id+1]; w++) {
               if (v == w) continue; // Nothing to check
               bool invisible = false;
               // ... check intersection of segment vw with polygon edge ij
@@ -71,9 +71,9 @@ class VisibilityGraph {
                     unsigned pred_v = (v > first_vertex[poly])?v-1:first_vertex[poly+1]-1;
                     unsigned succ_v = (v < first_vertex[poly+1]-1)?v+1:first_vertex[poly];
                     float a_x = latitudes[succ_v] - latitudes[v];
-                    float a_y = longitudes[succ_v] - longitudes[succ_v];
-                    float b_x = latitudes[pred_v] - latitudes[pred_v];
-                    float b_y = longitudes[pred_v] - longitudes[pred_v];
+                    float a_y = longitudes[succ_v] - longitudes[v];
+                    float b_x = latitudes[pred_v] - latitudes[v];
+                    float b_y = longitudes[pred_v] - longitudes[v];
                     float c_x = latitudes[w] - latitudes[v];
                     float c_y = longitudes[w] - longitudes[v];
                     float ab = a_x*b_y-b_x*a_y;
@@ -107,8 +107,8 @@ class VisibilityGraph {
         heads.push_back(num_nodes);
         weights.push_back(0.5 + geo_dist(lat,lon,latitudes[vertex],longitudes[vertex]));
       }
-      latitudes.push_back(lat);
-      longitudes.push_back(lon);
+      latitudes[num_nodes] = lat;
+      longitudes[num_nodes] = lon;
       num_nodes++;
     }
 
@@ -126,7 +126,8 @@ class VisibilityGraph {
         this->heads = apply_inverse_permutation(permutation, std::move(this->heads));
         this->weights = apply_inverse_permutation(permutation, std::move(this->weights));
         this->first_out = invert_vector(this->tails, num_nodes);
-        this->first_out[num_nodes+1]=first_out[num_nodes];
+        this->first_out[num_nodes+1]=first_out[num_nodes]; // reserve space for source node
+        this->first_out.push_back(first_out[num_nodes]); // mark end
     }
 
     bool has_arc(unsigned tail, unsigned head) {
@@ -149,7 +150,7 @@ class VisibilityGraph {
         std::vector<unsigned> ret;
         for (unsigned v = 0; v < num_nodes; v++) {
             bool invisible = false;
-            for (unsigned q = 0; q < first_vertex.size(); q++) {
+            for (unsigned q = 0; q < first_vertex.size() - 1; q++) {
                 for (unsigned i = first_vertex[q], j=first_vertex[q+1] - 1; i<first_vertex[q+1]; j=i++) {
                     float y1=lat, x1=lon;
                     float y2=latitudes[v], x2=longitudes[v];
@@ -169,25 +170,26 @@ class VisibilityGraph {
         return ret;
     }
 
+    // Caution: need to call add_target and sort_graph_for_routing before calling this method
     void set_source(float lat, float lon) {
-        // Cleanup old source except for the first time
-        if (first_out.size() == num_nodes + 1) {
-            first_out.resize(num_nodes + 2);
-        } else {
-            for (unsigned i = 0; i < first_out[num_nodes+1] - first_out[num_nodes]; i++) {
-                tails.pop_back();
-                heads.pop_back();
-                weights.pop_back();
-            }
+        // Cleanup old source
+        for (unsigned i = first_out[num_nodes]; i < first_out[num_nodes+1]; i++) {
+            tails.pop_back();
+            heads.pop_back();
+            weights.pop_back();
         }
         // Add new source
         std::vector<unsigned> visibles = visible_vertices(lat, lon);
         for (unsigned vertex: visibles) {
             tails.push_back(num_nodes);
-            heads.push_back(vertex);
+            std::cout << __FILE__ << "(" << __LINE__ << ")" << 
+                "heads.push_back(" << vertex << ")" << std::endl;
+            heads.push_back(vertex); // TODO: find out why it crashes here
             weights.push_back(0.5 + geo_dist(lat,lon,latitudes[vertex],longitudes[vertex]));
         }
-        first_out[num_nodes + 1] = first_out[num_nodes] + visibles.size();
+        first_out[num_nodes] = first_out[num_nodes-1] + visibles.size();
+        first_out[num_nodes+1] = first_out[num_nodes];
+        print_graph(true);
     }
 
     Dijkstra get_router() {
