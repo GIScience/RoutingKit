@@ -66,7 +66,7 @@ int main(int argc, char*argv[]){
 		cout << "done" << endl;
         EXPECT(expected_avoid_edges==avoid_edges);
 
-        cout << "Testing ..." << flush;
+        cout << "Testing ... " << flush;
         unsigned source_node = 1;
         unsigned target_node = 8;
 
@@ -81,9 +81,6 @@ int main(int argc, char*argv[]){
 
         EspHeuristic heuristic(latitude, longitude, target_node, vg);
         
-        for (int i = 0; i < 13; i++) {
-            cout << "Heuristic for node " << i << " is " << heuristic(i) <<endl;
-        }
         auto ret = astar.settle(ScalarGetWeight(weight),heuristic);
         EXPECT_CMP(ret.node, ==, 1);
         ret = astar.settle(ScalarGetWeight(weight),heuristic);

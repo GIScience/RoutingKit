@@ -101,7 +101,6 @@ class VisibilityGraph {
     // Add links from visible nodes to target node
     void add_target(float lat, float lon) {
       auto visibles = visible_vertices(lat, lon);
-      std::cout << "Adding arcs for target: " << visibles.size() << std::endl; 
       for (unsigned vertex: visibles) {
         tails.push_back(vertex);
         heads.push_back(num_nodes);
@@ -123,10 +122,10 @@ class VisibilityGraph {
     void sort_graph_for_routing() {
         // TODO: Check whether this is the right permutation to be used
         this->permutation = compute_inverse_sort_permutation_first_by_tail_then_by_head_and_apply_sort_to_tail(this->num_nodes,this->tails, this->heads);
-        this->heads = apply_inverse_permutation(permutation, std::move(this->heads));
-        this->weights = apply_inverse_permutation(permutation, std::move(this->weights));
+        this->heads = apply_inverse_permutation(this->permutation, std::move(this->heads));
+        this->weights = apply_inverse_permutation(this->permutation, std::move(this->weights));
         this->first_out = invert_vector(this->tails, num_nodes);
-        this->first_out[num_nodes+1]=first_out[num_nodes]; // reserve space for source node
+        this->first_out[num_nodes]=first_out[num_nodes-1]; // reserve space for source node
         this->first_out.push_back(first_out[num_nodes]); // mark end
     }
 
@@ -174,22 +173,18 @@ class VisibilityGraph {
     void set_source(float lat, float lon) {
         // Cleanup old source
         for (unsigned i = first_out[num_nodes]; i < first_out[num_nodes+1]; i++) {
-            tails.pop_back();
-            heads.pop_back();
-            weights.pop_back();
+            this->tails.pop_back();
+            this->heads.pop_back();
+            this->weights.pop_back();
         }
         // Add new source
         std::vector<unsigned> visibles = visible_vertices(lat, lon);
         for (unsigned vertex: visibles) {
-            tails.push_back(num_nodes);
-            std::cout << __FILE__ << "(" << __LINE__ << ")" << 
-                "heads.push_back(" << vertex << ")" << std::endl;
-            heads.push_back(vertex); // TODO: find out why it crashes here
-            weights.push_back(0.5 + geo_dist(lat,lon,latitudes[vertex],longitudes[vertex]));
+            this->tails.push_back(num_nodes);
+            this->heads.push_back(vertex); // TODO: find out why it crashes here
+            this->weights.push_back(0.5 + geo_dist(lat,lon,latitudes[vertex],longitudes[vertex]));
         }
-        first_out[num_nodes] = first_out[num_nodes-1] + visibles.size();
-        first_out[num_nodes+1] = first_out[num_nodes];
-        print_graph(true);
+        first_out[num_nodes+1] = first_out[num_nodes]+ visibles.size();
     }
 
     Dijkstra get_router() {

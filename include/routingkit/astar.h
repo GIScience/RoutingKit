@@ -100,30 +100,23 @@ public:
 		auto p = queue.pop();
 		was_popped.set(p.id);
         
-        std::cout << "Popped node " << p.id << std::endl;
 		for(unsigned a=(*first_out)[p.id]; a<(*first_out)[p.id+1]; ++a){
-            std::cout << "Node " << (*head)[a] << " " << std::flush;
 			if((!was_popped.is_set((*head)[a]))&&(!avoid_edges->is_set(a))){
 				unsigned w = get_weight(a, p.key);
 				if(w < inf_weight){
 					unsigned score = tentative_distance[p.id] + w;
-					std::cout << "(s=" << score << ") " << std::flush;
 					if (score < tentative_distance[(*head)[a]]) {
 						unsigned h = heuristic((*head)[a]);
 						if(queue.contains_id((*head)[a])){
 							queue.decrease_key({(*head)[a], score + h});
-                            std::cout << "decreased";
 						} else {
 							queue.push({(*head)[a], score + h});
-							std::cout << "pushed";
 						}
-						std::cout << " (h=" << h << ")" << std::flush;
                         predecessor_arc[(*head)[a]] = a;
 						tentative_distance[(*head)[a]] = score;
 					}
 				}
 			}
-            std::cout << std::endl;
 		}
 		return Dijkstra::SettleResult{p.id, tentative_distance[p.id]};
 	}
