@@ -120,7 +120,7 @@ int main(int argc, char*argv[]){
 					break;
 			}
 			distance[i] = astar.get_distance_to(target[i]);
-			settlings[i] = astar.get_distance_to(target[i]);
+			settlings[i] = astar.get_settle_count();
 
 			time += get_micro_time();
 

@@ -118,6 +118,7 @@ public:
 				}
 			}
 		}
+		settle_count++;
 		return Dijkstra::SettleResult{p.id, tentative_distance[p.id]};
 	}
 
