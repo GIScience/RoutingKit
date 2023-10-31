@@ -115,12 +115,14 @@ int main(int argc, char*argv[]){
 		long long time_sum = 0;
 
 		for(unsigned i=0; i<query_count; ++i){
-            VisibilityGraph vg(polygons);
-            vg.visibility_naive(); // TODO: optimization: we do not need to recompute the whole graph in each round
+			VisibilityGraph vg(polygons);
+			vg.visibility_naive(); // TODO: optimization: we do not need to recompute the whole graph in each round
 
 			long long time = -get_micro_time();
 
-            vg.add_target(latitude[target[i]],longitude[target[i]]); 
+			vg.add_target(latitude[target[i]], longitude[target[i]]); 
+			vg.sort_graph_for_routing();
+
 			auto heuristic = new EspHeuristic(latitude, longitude, target[i], vg);
 
 			astar.reset().add_source(source[i]).set_avoid_edges(&avoid_edges);
