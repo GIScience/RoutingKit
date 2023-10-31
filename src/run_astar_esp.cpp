@@ -46,7 +46,7 @@ int main(int argc, char*argv[]){
 			polygons_file = argv[8];
 			avoid_file = argv[9];
 			distance_file = argv[10];
-            if (argc == 11) {
+            if (argc == 12) {
                 settlings_file = argv[11];
                 save_settlings = true;
             } else {
