@@ -9,7 +9,6 @@
 #include <routingkit/inverse_vector.h>
 #include <vector>
 #include <iostream>
-#include <iomanip> // TODO: remove after debug output is removed
 
 namespace RoutingKit {
 
@@ -40,25 +39,6 @@ class VisibilityGraph {
         }
       }
       first_vertex[polygons.size()]=vertex_id;
-
-      std::cout << "num_nodes: " << num_nodes << std::endl;
-      std::cout << "first_vertex:" ;
-      for (unsigned i = 0; i < first_vertex.size(); i++) {
-        std::cout << " " << first_vertex[i];
-      }
-      std::cout << std::endl;
-
-      std::cout << "lat:" ;
-      for (unsigned i = 0; i < latitudes.size(); i++) {
-        std::cout << " " << std::setw(5) << latitudes[i];
-      }
-      std::cout << std::endl;
-
-      std::cout << "lon:" ;
-      for (unsigned i = 0; i < longitudes.size(); i++) {
-        std::cout << " " << std::setw(5) << longitudes[i];
-      }
-      std::cout << std::endl;
     }
   
     // TODO: this is a very naive implementation of the naive O(n³) algo
@@ -141,26 +121,11 @@ class VisibilityGraph {
 
     void sort_graph_for_routing() {
         // TODO: Check whether this is the right permutation to be used
-        std::cout << "num_nodes: " << num_nodes << std::endl;
         this->permutation = compute_inverse_sort_permutation_first_by_tail_then_by_head_and_apply_sort_to_tail(this->num_nodes,this->tails, this->heads);
-        std::cout << "permutation:";
-        for (unsigned i = 0; i < permutation.size(); i++) std::cout << " " << permutation[i];
-        std::cout << std::endl << "tails:";
-        for (unsigned i = 0; i < tails.size(); i++) std::cout << " " << tails[i];
         this->heads = apply_inverse_permutation(this->permutation, std::move(this->heads));
-        std::cout << std::endl << "heads:";
-        for (unsigned i = 0; i < heads.size(); i++) std::cout << " " << heads[i];
         this->weights = apply_inverse_permutation(this->permutation, std::move(this->weights));
-        std::cout << std::endl << "weights:";
-        for (unsigned i = 0; i < weights.size(); i++) std::cout << " " << weights[i];
         this->first_out = invert_vector(this->tails, num_nodes);
-        std::cout << std::endl << "first_out (RoutingKit):";
-        for (unsigned i = 0; i < first_out.size(); i++) std::cout << " " << first_out[i];
-        //this->first_out[num_nodes]=first_out[num_nodes-1]; // reserve space for source node
         this->first_out.push_back(first_out[num_nodes]); // mark end
-        std::cout << std::endl << "first_out (additional reserved space):";
-        for (unsigned i = 0; i < first_out.size(); i++) std::cout << " " << first_out[i];
-        std::cout << std::endl;
     }
 
     bool has_arc(unsigned tail, unsigned head) {
