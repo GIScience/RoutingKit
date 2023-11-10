@@ -4,6 +4,7 @@
 #include <routingkit/astar.h>
 #include <routingkit/inverse_vector.h>
 #include <routingkit/polygon_io.h>
+#include <routingkit/geojson.h>
 
 #include "verify.h"
 
@@ -114,6 +115,8 @@ int main(int argc, char*argv[]){
 		long long time_max = 0;
 		long long time_sum = 0;
 
+        BitVector settled_nodes = BitVector(first_out.size() - 1);
+
 		for(unsigned i=0; i<query_count; ++i){
 			VisibilityGraph vg(polygons);
 			vg.visibility_naive(); // TODO: optimization: we do not need to recompute the whole graph in each round
@@ -124,10 +127,11 @@ int main(int argc, char*argv[]){
 			vg.sort_graph_for_routing();
 
 			auto heuristic = new EspHeuristic(latitude, longitude, target[i], vg);
-
+            settled_nodes.reset_all();
 			astar.reset().add_source(source[i]).set_avoid_edges(&avoid_edges);
 			while(!astar.is_finished()){
 				auto x = astar.settle(ScalarGetWeight(weight),*heuristic).node;
+                settled_nodes.set(x); 
 				if(x == target[i])
 					break;
 			}
@@ -138,6 +142,13 @@ int main(int argc, char*argv[]){
 
 			time_max = std::max(time_max, time);
 			time_sum += time;
+
+            auto node_path = astar.get_node_path_to(target[i]);
+            path_to_geojson(node_path, latitude, longitude);
+            if (save_settlings) {
+                save_bit_vector(settlings_file + std::to_string(i), settled_nodes);
+            } 
+
 		}
 
 		cout << "done" << endl;

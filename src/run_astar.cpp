@@ -3,6 +3,7 @@
 #include <routingkit/min_max.h>
 #include <routingkit/astar.h>
 #include <routingkit/inverse_vector.h>
+#include <routingkit/geojson.h>
 
 #include "verify.h"
 
@@ -59,7 +60,7 @@ int main(int argc, char*argv[]){
 		vector<float>latitude = load_vector<float>(lat_file);
 		vector<float>longitude = load_vector<float>(lon_file);
 	    BitVector avoid_edges = load_bit_vector(avoid_file);
-	
+
 		cout << "done" << endl;
 
 		cout << "Validity tests ... " << flush;
@@ -108,14 +109,17 @@ int main(int argc, char*argv[]){
 		long long time_max = 0;
 		long long time_sum = 0;
 
+        BitVector settled_nodes = BitVector(first_out.size() - 1);
+
 		for(unsigned i=0; i<query_count; ++i){
 
 			long long time = -get_micro_time();
 			auto heuristic = new BeelineDistanceHeuristic(latitude, longitude, target[i]);
-
+            settled_nodes.reset_all();
 			astar.reset().add_source(source[i]).set_avoid_edges(&avoid_edges);
 			while(!astar.is_finished()){
 				auto x = astar.settle(ScalarGetWeight(weight),*heuristic).node;
+                settled_nodes.set(x); 
 				if(x == target[i])
 					break;
 			}
@@ -126,6 +130,12 @@ int main(int argc, char*argv[]){
 
 			time_max = std::max(time_max, time);
 			time_sum += time;
+            
+            auto node_path = astar.get_node_path_to(target[i]);
+            path_to_geojson(node_path, latitude, longitude);
+            if (save_settlings) {
+                save_bit_vector(settlings_file + std::to_string(i), settled_nodes);
+            }
 		}
 
 		cout << "done" << endl;
