@@ -115,6 +115,8 @@ int main(int argc, char*argv[]){
 		long long time_max = 0;
 		long long time_sum = 0;
 
+    
+
         BitVector settled_nodes = BitVector(first_out.size() - 1);
 
 		for(unsigned i=0; i<query_count; ++i){
@@ -149,6 +151,9 @@ int main(int argc, char*argv[]){
                 save_bit_vector(settlings_file + std::to_string(i), settled_nodes);
             } 
 
+            cout << "source integration time: " << heuristic->time_set_source << "musec" << endl;
+            cout << "esp solving time       : " << heuristic->time_solve_esp << "musec" << endl;
+            cout << "integration/esp        : " << heuristic->time_set_source/heuristic->time_solve_esp << endl;
 		}
 
 		cout << "done" << endl;

@@ -141,27 +141,31 @@ class VisibilityGraph {
         return num_nodes - 1; 
     }
 
+    bool is_visible_from(float lat, float lon, unsigned vertex) {
+        bool visible = false;
+        for (unsigned q = 0; q < first_vertex.size() - 1; q++) {
+            for (unsigned i = first_vertex[q], j=first_vertex[q+1] - 1; i<first_vertex[q+1]; j=i++) {
+                float y1=lat, x1=lon;
+                float y2=latitudes[vertex], x2=longitudes[vertex];
+                float y3=latitudes[i], x3=longitudes[i];
+                float y4=latitudes[j], x4=longitudes[j];
+                if ((x1!=x3 || y1!=y3) && (x1!=x4 || y1!=y4) && (x2!=x3 || y2!=y3) && (x2!=x4 || y2!=y4)) {
+                     visible = !segments_intersect(x1,y1,x2,y2,x3,y3,x4,y4);
+                     if (!visible) goto skip_further_obstacles;
+                }
+            }
+        }
+    skip_further_obstacles:
+        return visible;
+    }
+
     // This methods returns the IDs of the visible vertices as
     // stored in the polygon. These may be different from the
     // vertex IDs in the visibilty graph after prepared for routing.
     std::vector<unsigned> visible_vertices(float lat, float lon) {
         std::vector<unsigned> ret;
         for (unsigned v = 0; v < num_nodes; v++) {
-            bool invisible = false;
-            for (unsigned q = 0; q < first_vertex.size() - 1; q++) {
-                for (unsigned i = first_vertex[q], j=first_vertex[q+1] - 1; i<first_vertex[q+1]; j=i++) {
-                    float y1=lat, x1=lon;
-                    float y2=latitudes[v], x2=longitudes[v];
-                    float y3=latitudes[i], x3=longitudes[i];
-                    float y4=latitudes[j], x4=longitudes[j];
-                    if ((x1!=x3 || y1!=y3) && (x1!=x4 || y1!=y4) && (x2!=x3 || y2!=y3) && (x2!=x4 || y2!=y4)) {
-                        invisible = segments_intersect(x1,y1,x2,y2,x3,y3,x4,y4);
-                        if (invisible) goto skip_further_obstacles;
-                    }
-                }
-            }
-        skip_further_obstacles:
-            if (!invisible) {
+            if (is_visible_from(lat, lon, v)) {
                ret.push_back(v);
             }
         }
@@ -180,7 +184,7 @@ class VisibilityGraph {
         std::vector<unsigned> visibles = visible_vertices(lat, lon);
         for (unsigned vertex: visibles) {
             this->tails.push_back(num_nodes);
-            this->heads.push_back(vertex); // TODO: find out why it crashes here
+            this->heads.push_back(vertex);
             this->weights.push_back(0.5 + geo_dist(lat,lon,latitudes[vertex],longitudes[vertex]));
         }
         first_out[num_nodes+1] = first_out[num_nodes]+ visibles.size();

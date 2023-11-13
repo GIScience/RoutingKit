@@ -3,6 +3,7 @@
 
 #include <routingkit/id_queue.h>
 #include <routingkit/constants.h>
+#include <routingkit/timer.h>
 #include <routingkit/timestamp_flag.h>
 #include <routingkit/geo_dist.h>
 #include <routingkit/bit_vector.h>
@@ -218,16 +219,25 @@ class EspHeuristic {
             visibility(&vg)
         {}
 
-        unsigned operator()(unsigned id) const {
+        unsigned operator()(unsigned id) /*const*/ { // TODO: re-enable const after time measurement is removed
+            if (visibility->is_visible_from(latitude[id],longitude[id],visibility->target())) {
+               return (unsigned)(0.5+geo_dist(latitude[id],longitude[id],latitude[target_id],longitude[target_id]));
+            }
+            long long time = get_micro_time();
             visibility->set_source(latitude[id],longitude[id]);
+            time_set_source += get_micro_time() - time;
+            time = get_micro_time();
             auto dij = visibility->get_router();
             while(!dij.is_finished()){
                 auto x = dij.settle(ScalarGetWeight(visibility->weights)).node;
                 if(x == visibility->target()) 
                     break;
             }
+            time_solve_esp += (get_micro_time() - time);
             return dij.get_distance_to(visibility->target());
         }
+        long long time_set_source = 0;
+        long long time_solve_esp = 0;
     private:
         const std::vector<float>latitude;
         const std::vector<float>longitude;
