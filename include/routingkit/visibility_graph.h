@@ -100,7 +100,7 @@ class VisibilityGraph {
 
     // Add links from visible nodes to target node
     void add_target(float lat, float lon) {
-      auto visibles = visible_vertices(lat, lon);
+      auto visibles = visible_vertices_naive(lat, lon);
       for (unsigned vertex: visibles) {
         tails.push_back(vertex);
         heads.push_back(num_nodes);
@@ -109,6 +109,31 @@ class VisibilityGraph {
       latitudes[num_nodes] = lat;
       longitudes[num_nodes] = lon;
       num_nodes++;
+    }
+
+    // Add links from target node to visible nodes
+    void add_target_bw(float lat, float lon) {
+      auto visibles = visible_vertices_naive(lat, lon);
+      for (unsigned vertex: visibles) {
+        tails.push_back(num_nodes);
+        heads.push_back(vertex);
+        weights.push_back(0.5 + geo_dist(lat,lon,latitudes[vertex],longitudes[vertex]));
+      }
+      latitudes[num_nodes] = lat;
+      longitudes[num_nodes] = lon;
+      num_nodes++;
+    }
+
+    // This method should be called after add_target and sort_graph_for_routing 
+    std::vector<unsigned> get_distance_table() {
+        std::vector<unsigned> table(num_nodes);
+        Dijkstra dij(this->first_out, this->tails, this->heads);
+        dij.add_source(target());
+        while(!dij.is_finished()){
+            auto x = dij.settle(ScalarGetWeight(this->weights));
+            table[x.node] = x.distance;
+        }
+        return table;
     }
 
     int node_count() {
@@ -159,10 +184,11 @@ class VisibilityGraph {
         return visible;
     }
 
+    // Naive visibility implementation of complexity O(n²)
     // This methods returns the IDs of the visible vertices as
     // stored in the polygon. These may be different from the
     // vertex IDs in the visibilty graph after prepared for routing.
-    std::vector<unsigned> visible_vertices(float lat, float lon) {
+    std::vector<unsigned> visible_vertices_naive(float lat, float lon) {
         std::vector<unsigned> ret;
         for (unsigned v = 0; v < num_nodes; v++) {
             if (is_visible_from(lat, lon, v)) {
@@ -172,28 +198,44 @@ class VisibilityGraph {
         return ret;
     }
 
-    // Caution: need to call add_target and sort_graph_for_routing before calling this method
-    void set_source(float lat, float lon) {
-        // Cleanup old source
-        for (unsigned i = first_out[num_nodes]; i < first_out[num_nodes+1]; i++) {
-            this->tails.pop_back();
-            this->heads.pop_back();
-            this->weights.pop_back();
-        }
-        // Add new source
-        std::vector<unsigned> visibles = visible_vertices(lat, lon);
-        for (unsigned vertex: visibles) {
-            this->tails.push_back(num_nodes);
-            this->heads.push_back(vertex);
-            this->weights.push_back(0.5 + geo_dist(lat,lon,latitudes[vertex],longitudes[vertex]));
-        }
-        first_out[num_nodes+1] = first_out[num_nodes]+ visibles.size();
-    }
+    // sort by angle compared to line from settling-point to target-point
+    std::vector<unsigned> vertices_by_angle_and_distance(float lat, float lon) {
+        std::vector<unsigned> vertices(num_nodes);
+        for (unsigned i = 0; i< vertices.size(); i++) vertices[i]=i;
 
-    Dijkstra get_router() {
-        Dijkstra dij(first_out, this->tails, this->heads);
-        dij.add_source(num_nodes);
-        return dij;
+        std::sort(vertices.begin(), vertices.end(),
+            [lat, lon, this](unsigned a, unsigned b){
+                // We do not need the exact angles, only how they compare to each
+                // other. Therefore, we use determinants to avoid expensive
+                // trigonometric functions.
+                float st_x = longitudes[target()] - lon; 
+                float st_y = latitudes[target()] - lat;
+                float sa_x = longitudes[target()] - lon;
+                float sa_y = latitudes[target()] - lat;
+                float sb_x = longitudes[b] - lon;
+                float sb_y = latitudes[target()] - lat;
+                float ta = st_x*sa_y - sa_x*st_y;
+                float tb = st_x*sb_y - sb_x*st_y;
+                float ab = sa_x*sb_y - sb_x*sa_y;
+                if (ab == 0 && ta*tb > 0) {
+                    //return  (geo_dist(lat, lon, latitudes[a], longitudes[a]) 
+                    //    < geo_dist(lat, lon, latitudes[b], longitudes[b]));
+                    return abs(tb) > abs(ta); // Replaces geo_dist-comparison
+                } else if ((ta <= 0 && tb <= 0 && ab <= 0) || 
+                        (tb >= 0 && (ta <= 0 || ab <= 0))) {
+                    return true;
+                } 
+                return false;
+            }
+        );
+        return vertices;
+    }
+        
+    std::vector<unsigned> visible_vertices_plane_sweep(float lat, float lon) {
+        std::vector<unsigned> vertices = vertices_by_angle_and_distance(lat, lon);
+        // TODO: find intersections and store them in balanced search tree
+        //     
+        return vertices;
     }
 
     void print_graph(bool all) {

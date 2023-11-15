@@ -110,26 +110,28 @@ int main(int argc, char*argv[]){
 		vector<unsigned>distance(query_count);
 		vector<unsigned>settlings(query_count);
 
-		cout << "Running test queries ... " << flush;
+		cout << "Running test queries ... " << endl;
 
 		long long time_max = 0;
 		long long time_sum = 0;
 
-    
-
         BitVector settled_nodes = BitVector(first_out.size() - 1);
 
 		for(unsigned i=0; i<query_count; ++i){
+			long long vg_time = get_micro_time();
 			VisibilityGraph vg(polygons);
 			vg.visibility_naive(); // TODO: optimization: we do not need to recompute the whole graph in each round
 
-			long long time = -get_micro_time();
-
-			vg.add_target(latitude[target[i]], longitude[target[i]]); 
+			vg.add_target_bw(latitude[target[i]], longitude[target[i]]); 
 			vg.sort_graph_for_routing();
+            
+            vg_time = get_micro_time() - vg_time;
 
 			auto heuristic = new EspHeuristic(latitude, longitude, target[i], vg);
             settled_nodes.reset_all();
+
+			long long time = -get_micro_time();
+
 			astar.reset().add_source(source[i]).set_avoid_edges(&avoid_edges);
 			while(!astar.is_finished()){
 				auto x = astar.settle(ScalarGetWeight(weight),*heuristic).node;
@@ -137,9 +139,9 @@ int main(int argc, char*argv[]){
 				if(x == target[i])
 					break;
 			}
+
 			distance[i] = astar.get_distance_to(target[i]);
 			settlings[i] = astar.get_settle_count();
-
 			time += get_micro_time();
 
 			time_max = std::max(time_max, time);
@@ -151,9 +153,11 @@ int main(int argc, char*argv[]){
                 save_bit_vector(settlings_file + std::to_string(i), settled_nodes);
             } 
 
+            cout << "VG building time       : " << vg_time << "musec" << endl;
             cout << "source integration time: " << heuristic->time_set_source << "musec" << endl;
             cout << "esp solving time       : " << heuristic->time_solve_esp << "musec" << endl;
             cout << "integration/esp        : " << heuristic->time_set_source/heuristic->time_solve_esp << endl;
+            cout << "running time           : " << time << "musec" << endl;
 		}
 
 		cout << "done" << endl;

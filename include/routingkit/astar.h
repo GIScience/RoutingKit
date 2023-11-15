@@ -10,6 +10,7 @@
 #include <routingkit/visibility_graph.h>
 #include <vector>
 
+#include <climits>
 #include <iostream>
 
 namespace RoutingKit{
@@ -217,25 +218,22 @@ class EspHeuristic {
             longitude(longitude),
             target_id(target_id), // TODO: do we need this?
             visibility(&vg)
-        {}
+        { table = vg.get_distance_table(); }
 
-        unsigned operator()(unsigned id) /*const*/ { // TODO: re-enable const after time measurement is removed
-            if (visibility->is_visible_from(latitude[id],longitude[id],visibility->target())) {
-               return (unsigned)(0.5+geo_dist(latitude[id],longitude[id],latitude[target_id],longitude[target_id]));
-            }
+        unsigned operator()(unsigned id) { 
             long long time = get_micro_time();
-            visibility->set_source(latitude[id],longitude[id]);
+            std::vector<unsigned> visibles = visibility->visible_vertices_naive(latitude[id], longitude[id]);
             time_set_source += get_micro_time() - time;
             time = get_micro_time();
-            auto dij = visibility->get_router();
-            while(!dij.is_finished()){
-                auto x = dij.settle(ScalarGetWeight(visibility->weights)).node;
-                if(x == visibility->target()) 
-                    break;
+            unsigned min_distance = UINT_MAX;
+            for (unsigned vertex: visibles) {
+                unsigned current_distance = table[vertex] + (unsigned)(0.5 + geo_dist(latitude[id],longitude[id],latitude[vertex],longitude[vertex]));
+                min_distance = std::min(min_distance, current_distance);
             }
             time_solve_esp += (get_micro_time() - time);
-            return dij.get_distance_to(visibility->target());
+            return min_distance;
         }
+  
         long long time_set_source = 0;
         long long time_solve_esp = 0;
     private:
@@ -243,7 +241,7 @@ class EspHeuristic {
         const std::vector<float>longitude;
         const unsigned target_id;
         VisibilityGraph *visibility;
-        
+        std::vector<unsigned> table;
 };
 
 } // RoutingKit

@@ -104,7 +104,7 @@ int main(int argc, char*argv[]){
         vector<unsigned>settlings(query_count);
 
 
-		cout << "Running test queries ... " << flush;
+		cout << "Running test queries ... " << endl;
 
 		long long time_max = 0;
 		long long time_sum = 0;

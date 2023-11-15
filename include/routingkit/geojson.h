@@ -15,7 +15,7 @@ void path_to_geojson(std::vector<unsigned> node_path,
         std::cout << "[" << longitude[node_path[n]] << ","
              << latitude[node_path[n]] << "]";
     }
-    std::cout << "]}";
+    std::cout << "]}" << std::endl;
 }
 
 

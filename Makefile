@@ -1,9 +1,7 @@
-
 # This makefile was automatically generated. Run ./generate_make_file to regenerate the file.
 CC=g++
 AR=ar
-#CFLAGS=-Wall -DNDEBUG -march=native -ffast-math -std=c++11 -O3 -DROUTING_KIT_NO_ALIGNED_ALLOC -fPIC -Iinclude
-CFLAGS=-Wall -DNDEBUG -march=native -ffast-math -std=c++11 -O3 -fPIC -Iinclude
+CFLAGS=-Wall -DNDEBUG -march=native -ffast-math -std=c++11 -O3 -DROUTING_KIT_NO_ALIGNED_ALLOC -fPIC -Iinclude
 LDFLAGS=
 OMP_CFLAGS=
 OMP_LDFLAGS=
@@ -190,7 +188,7 @@ build/strongly_connected_component.o: include/routingkit/min_max.h include/routi
 	@mkdir -p build
 	$(CC) $(CFLAGS)  -c src/strongly_connected_component.cpp -o build/strongly_connected_component.o
 
-build/test_astar_esp.o: include/routingkit/astar.h include/routingkit/bit_vector.h include/routingkit/constants.h include/routingkit/dijkstra.h include/routingkit/geo_dist.h include/routingkit/graph_util.h include/routingkit/id_queue.h include/routingkit/inverse_vector.h include/routingkit/min_max.h include/routingkit/permutation.h include/routingkit/segments_intersect.h include/routingkit/sort.h include/routingkit/timestamp_flag.h include/routingkit/visibility_graph.h src/expect.h src/test_astar_esp.cpp src/verify.h generate_make_file
+build/test_astar_esp.o: include/routingkit/astar.h include/routingkit/bit_vector.h include/routingkit/constants.h include/routingkit/dijkstra.h include/routingkit/geo_dist.h include/routingkit/graph_util.h include/routingkit/id_queue.h include/routingkit/inverse_vector.h include/routingkit/min_max.h include/routingkit/permutation.h include/routingkit/segments_intersect.h include/routingkit/sort.h include/routingkit/timer.h include/routingkit/timestamp_flag.h include/routingkit/visibility_graph.h src/expect.h src/test_astar_esp.cpp src/verify.h generate_make_file
 	@mkdir -p build
 	$(CC) $(CFLAGS)  -c src/test_astar_esp.cpp -o build/test_astar_esp.o
 
@@ -434,9 +432,9 @@ bin/show_path: build/bit_vector.o build/contraction_hierarchy.o build/graph_util
 	@mkdir -p bin
 	$(CC) $(LDFLAGS) build/bit_vector.o build/contraction_hierarchy.o build/graph_util.o build/show_path.o build/timer.o build/vector_io.o -pthread  -o bin/show_path
 
-bin/test_astar_esp: build/bit_vector.o build/expect.o build/graph_util.o build/test_astar_esp.o build/verify.o
+bin/test_astar_esp: build/bit_vector.o build/expect.o build/graph_util.o build/test_astar_esp.o build/timer.o build/verify.o
 	@mkdir -p bin
-	$(CC) $(LDFLAGS) build/bit_vector.o build/expect.o build/graph_util.o build/test_astar_esp.o build/verify.o -lm -pthread  -o bin/test_astar_esp
+	$(CC) $(LDFLAGS) build/bit_vector.o build/expect.o build/graph_util.o build/test_astar_esp.o build/timer.o build/verify.o -lm -pthread  -o bin/test_astar_esp
 
 bin/test_basic_features: build/bit_select.o build/bit_vector.o build/buffered_asynchronous_reader.o build/contraction_hierarchy.o build/customizable_contraction_hierarchy.o build/expect.o build/file_data_source.o build/graph_util.o build/id_mapper.o build/nested_dissection.o build/osm_decoder.o build/osm_graph_builder.o build/osm_profile.o build/protobuf.o build/test_basic_features.o build/timer.o build/vector_io.o
 	@mkdir -p bin
