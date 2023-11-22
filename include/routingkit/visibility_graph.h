@@ -7,6 +7,7 @@
 #include <routingkit/permutation.h>
 #include <routingkit/segments_intersect.h>
 #include <routingkit/inverse_vector.h>
+#include <routingkit/vector_io.h>
 #include <vector>
 #include <iostream>
 
@@ -268,11 +269,19 @@ class VisibilityGraph {
         std::cout << "}" << std::endl;
     }
 
+    void save_graph() {
+        save_vector("vg_first_out", first_out);
+        save_vector("vg_head", heads);
+        save_vector("vg_tail", tails);
+        save_vector("vg_lat", latitudes);
+        save_vector("vg_lon", longitudes);
+    }
+
     std::vector<unsigned> weights; // TODO: encapsulation!
-  private:
-    std::vector<unsigned>first_vertex;
     std::vector<float> latitudes;
     std::vector<float> longitudes;
+  private:
+    std::vector<unsigned>first_vertex;
     std::vector<unsigned> permutation;
 
     unsigned num_nodes = 0;

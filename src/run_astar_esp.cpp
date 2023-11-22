@@ -126,6 +126,7 @@ int main(int argc, char*argv[]){
 			vg.sort_graph_for_routing();
             
             vg_time = get_micro_time() - vg_time;
+            vg.save_graph();
 
 			auto heuristic = new EspHeuristic(latitude, longitude, target[i], vg);
             settled_nodes.reset_all();

@@ -6,7 +6,7 @@ LDFLAGS=
 OMP_CFLAGS=
 OMP_LDFLAGS=
 
-all: bin/compare_vector bin/compute_contraction_hierarchy bin/compute_geographic_distance_weights bin/compute_nested_dissection_order bin/convert_road_dimacs_coordinates bin/convert_road_dimacs_graph bin/decode_vector bin/encode_vector bin/examine_ch bin/export_geojson_graph bin/export_road_dimacs_graph bin/generate_constant_vector bin/generate_dijkstra_rank_test_queries bin/generate_random_node_list bin/generate_random_source_times bin/generate_test_queries bin/graph_to_dot bin/graph_to_svg bin/map_polygons_to_nodes_and_edges bin/osm_extract bin/randomly_permute_nodes bin/run_astar bin/run_astar_esp bin/run_astar_zero bin/run_contraction_hierarchy_query bin/run_dijkstra bin/run_geo_position_to_node bin/show_path bin/test_astar_esp bin/test_basic_features bin/test_bit_vector bin/test_buffered_asynchronous_reader bin/test_contraction_hierarchy_extra_weight bin/test_contraction_hierarchy_path_query bin/test_contraction_hierarchy_pinned_query bin/test_customizable_contraction_hierarchy bin/test_customizable_contraction_hierarchy_customization bin/test_customizable_contraction_hierarchy_path_query bin/test_customizable_contraction_hierarchy_perfect_customization bin/test_customizable_contraction_hierarchy_pinned_query bin/test_customizable_contraction_hierarchy_reset bin/test_dijkstra bin/test_edge_crosses_polygon bin/test_geo_dist bin/test_id_mapper bin/test_id_set_queue bin/test_inverse_vector bin/test_nearest_neighbor bin/test_nested_dissection bin/test_osm_simple bin/test_permutation bin/test_point_in_polygon bin/test_protobuf bin/test_sort bin/test_strongly_connected_component bin/test_tag_map bin/test_vector_io bin/test_visibility_graph lib/libroutingkit.a lib/libroutingkit.so
+all: bin/compare_vector bin/compute_contraction_hierarchy bin/compute_geographic_distance_weights bin/compute_nested_dissection_order bin/convert_road_dimacs_coordinates bin/convert_road_dimacs_graph bin/decode_vector bin/encode_vector bin/examine_ch bin/export_geojson_graph bin/export_road_dimacs_graph bin/export_simple_geojson_graph bin/generate_constant_vector bin/generate_dijkstra_rank_test_queries bin/generate_random_node_list bin/generate_random_source_times bin/generate_test_queries bin/graph_to_dot bin/graph_to_svg bin/map_polygons_to_nodes_and_edges bin/osm_extract bin/randomly_permute_nodes bin/run_astar bin/run_astar_esp bin/run_astar_zero bin/run_contraction_hierarchy_query bin/run_dijkstra bin/run_geo_position_to_node bin/show_path bin/test_astar_esp bin/test_basic_features bin/test_bit_vector bin/test_buffered_asynchronous_reader bin/test_contraction_hierarchy_extra_weight bin/test_contraction_hierarchy_path_query bin/test_contraction_hierarchy_pinned_query bin/test_customizable_contraction_hierarchy bin/test_customizable_contraction_hierarchy_customization bin/test_customizable_contraction_hierarchy_path_query bin/test_customizable_contraction_hierarchy_perfect_customization bin/test_customizable_contraction_hierarchy_pinned_query bin/test_customizable_contraction_hierarchy_reset bin/test_dijkstra bin/test_edge_crosses_polygon bin/test_geo_dist bin/test_id_mapper bin/test_id_set_queue bin/test_inverse_vector bin/test_nearest_neighbor bin/test_nested_dissection bin/test_osm_simple bin/test_permutation bin/test_point_in_polygon bin/test_protobuf bin/test_sort bin/test_strongly_connected_component bin/test_tag_map bin/test_visibility_graph lib/libroutingkit.a lib/libroutingkit.so
 
 build/bit_select.o: src/bit_select.cpp src/bit_select.h src/emulate_gcc_builtin.h generate_make_file
 	@mkdir -p build
@@ -75,6 +75,10 @@ build/export_geojson_graph.o: include/routingkit/bit_vector.h include/routingkit
 build/export_road_dimacs_graph.o: include/routingkit/bit_vector.h include/routingkit/constants.h include/routingkit/inverse_vector.h include/routingkit/min_max.h include/routingkit/permutation.h include/routingkit/sort.h include/routingkit/vector_io.h src/export_road_dimacs_graph.cpp generate_make_file
 	@mkdir -p build
 	$(CC) $(CFLAGS)  -c src/export_road_dimacs_graph.cpp -o build/export_road_dimacs_graph.o
+
+build/export_simple_geojson_graph.o: include/routingkit/bit_vector.h include/routingkit/constants.h include/routingkit/geojson.h include/routingkit/inverse_vector.h include/routingkit/min_max.h include/routingkit/permutation.h include/routingkit/sort.h include/routingkit/vector_io.h src/export_simple_geojson_graph.cpp src/verify.h generate_make_file
+	@mkdir -p build
+	$(CC) $(CFLAGS)  -c src/export_simple_geojson_graph.cpp -o build/export_simple_geojson_graph.o
 
 build/file_data_source.o: src/file_data_source.cpp src/file_data_source.h generate_make_file
 	@mkdir -p build
@@ -188,7 +192,7 @@ build/strongly_connected_component.o: include/routingkit/min_max.h include/routi
 	@mkdir -p build
 	$(CC) $(CFLAGS)  -c src/strongly_connected_component.cpp -o build/strongly_connected_component.o
 
-build/test_astar_esp.o: include/routingkit/astar.h include/routingkit/bit_vector.h include/routingkit/constants.h include/routingkit/dijkstra.h include/routingkit/geo_dist.h include/routingkit/graph_util.h include/routingkit/id_queue.h include/routingkit/inverse_vector.h include/routingkit/min_max.h include/routingkit/permutation.h include/routingkit/segments_intersect.h include/routingkit/sort.h include/routingkit/timer.h include/routingkit/timestamp_flag.h include/routingkit/visibility_graph.h src/expect.h src/test_astar_esp.cpp src/verify.h generate_make_file
+build/test_astar_esp.o: include/routingkit/astar.h include/routingkit/bit_vector.h include/routingkit/constants.h include/routingkit/dijkstra.h include/routingkit/geo_dist.h include/routingkit/graph_util.h include/routingkit/id_queue.h include/routingkit/inverse_vector.h include/routingkit/min_max.h include/routingkit/permutation.h include/routingkit/segments_intersect.h include/routingkit/sort.h include/routingkit/timer.h include/routingkit/timestamp_flag.h include/routingkit/vector_io.h include/routingkit/visibility_graph.h src/expect.h src/test_astar_esp.cpp src/verify.h generate_make_file
 	@mkdir -p build
 	$(CC) $(CFLAGS)  -c src/test_astar_esp.cpp -o build/test_astar_esp.o
 
@@ -300,11 +304,7 @@ build/test_tag_map.o: include/routingkit/constants.h include/routingkit/inverse_
 	@mkdir -p build
 	$(CC) $(CFLAGS)  -c src/test_tag_map.cpp -o build/test_tag_map.o
 
-build/test_vector_io.o: include/routingkit/bit_vector.h include/routingkit/vector_io.h src/expect.h src/test_vector_io.cpp generate_make_file
-	@mkdir -p build
-	$(CC) $(CFLAGS)  -c src/test_vector_io.cpp -o build/test_vector_io.o
-
-build/test_visibility_graph.o: include/routingkit/constants.h include/routingkit/dijkstra.h include/routingkit/geo_dist.h include/routingkit/graph_util.h include/routingkit/id_queue.h include/routingkit/inverse_vector.h include/routingkit/min_max.h include/routingkit/permutation.h include/routingkit/segments_intersect.h include/routingkit/sort.h include/routingkit/timestamp_flag.h include/routingkit/visibility_graph.h src/expect.h src/test_visibility_graph.cpp generate_make_file
+build/test_visibility_graph.o: include/routingkit/bit_vector.h include/routingkit/constants.h include/routingkit/dijkstra.h include/routingkit/geo_dist.h include/routingkit/graph_util.h include/routingkit/id_queue.h include/routingkit/inverse_vector.h include/routingkit/min_max.h include/routingkit/permutation.h include/routingkit/segments_intersect.h include/routingkit/sort.h include/routingkit/timestamp_flag.h include/routingkit/vector_io.h include/routingkit/visibility_graph.h src/expect.h src/test_visibility_graph.cpp generate_make_file
 	@mkdir -p build
 	$(CC) $(CFLAGS)  -c src/test_visibility_graph.cpp -o build/test_visibility_graph.o
 
@@ -363,6 +363,10 @@ bin/export_geojson_graph: build/bit_vector.o build/export_geojson_graph.o build/
 bin/export_road_dimacs_graph: build/bit_vector.o build/export_road_dimacs_graph.o build/vector_io.o
 	@mkdir -p bin
 	$(CC) $(LDFLAGS) build/bit_vector.o build/export_road_dimacs_graph.o build/vector_io.o -pthread  -o bin/export_road_dimacs_graph
+
+bin/export_simple_geojson_graph: build/bit_vector.o build/export_simple_geojson_graph.o build/vector_io.o build/verify.o
+	@mkdir -p bin
+	$(CC) $(LDFLAGS) build/bit_vector.o build/export_simple_geojson_graph.o build/vector_io.o build/verify.o -pthread  -o bin/export_simple_geojson_graph
 
 bin/generate_constant_vector: build/bit_vector.o build/generate_constant_vector.o build/vector_io.o
 	@mkdir -p bin
@@ -432,9 +436,9 @@ bin/show_path: build/bit_vector.o build/contraction_hierarchy.o build/graph_util
 	@mkdir -p bin
 	$(CC) $(LDFLAGS) build/bit_vector.o build/contraction_hierarchy.o build/graph_util.o build/show_path.o build/timer.o build/vector_io.o -pthread  -o bin/show_path
 
-bin/test_astar_esp: build/bit_vector.o build/expect.o build/graph_util.o build/test_astar_esp.o build/timer.o build/verify.o
+bin/test_astar_esp: build/bit_vector.o build/expect.o build/graph_util.o build/test_astar_esp.o build/timer.o build/vector_io.o build/verify.o
 	@mkdir -p bin
-	$(CC) $(LDFLAGS) build/bit_vector.o build/expect.o build/graph_util.o build/test_astar_esp.o build/timer.o build/verify.o -lm -pthread  -o bin/test_astar_esp
+	$(CC) $(LDFLAGS) build/bit_vector.o build/expect.o build/graph_util.o build/test_astar_esp.o build/timer.o build/vector_io.o build/verify.o -lm -pthread  -o bin/test_astar_esp
 
 bin/test_basic_features: build/bit_select.o build/bit_vector.o build/buffered_asynchronous_reader.o build/contraction_hierarchy.o build/customizable_contraction_hierarchy.o build/expect.o build/file_data_source.o build/graph_util.o build/id_mapper.o build/nested_dissection.o build/osm_decoder.o build/osm_graph_builder.o build/osm_profile.o build/protobuf.o build/test_basic_features.o build/timer.o build/vector_io.o
 	@mkdir -p bin
@@ -544,13 +548,9 @@ bin/test_tag_map: build/expect.o build/test_tag_map.o
 	@mkdir -p bin
 	$(CC) $(LDFLAGS) build/expect.o build/test_tag_map.o  -o bin/test_tag_map
 
-bin/test_vector_io: build/bit_vector.o build/expect.o build/test_vector_io.o build/vector_io.o
+bin/test_visibility_graph: build/bit_vector.o build/expect.o build/graph_util.o build/test_visibility_graph.o build/vector_io.o
 	@mkdir -p bin
-	$(CC) $(LDFLAGS) build/bit_vector.o build/expect.o build/test_vector_io.o build/vector_io.o -pthread  -o bin/test_vector_io
-
-bin/test_visibility_graph: build/expect.o build/graph_util.o build/test_visibility_graph.o
-	@mkdir -p bin
-	$(CC) $(LDFLAGS) build/expect.o build/graph_util.o build/test_visibility_graph.o -lm  -o bin/test_visibility_graph
+	$(CC) $(LDFLAGS) build/bit_vector.o build/expect.o build/graph_util.o build/test_visibility_graph.o build/vector_io.o -lm -pthread  -o bin/test_visibility_graph
 
 lib/libroutingkit.a: build/bit_select.o build/bit_vector.o build/buffered_asynchronous_reader.o build/contraction_hierarchy.o build/customizable_contraction_hierarchy.o build/file_data_source.o build/geo_position_to_node.o build/graph_util.o build/id_mapper.o build/nested_dissection.o build/osm_decoder.o build/osm_graph_builder.o build/osm_profile.o build/osm_simple.o build/protobuf.o build/strongly_connected_component.o build/timer.o build/vector_io.o
 	@mkdir -p lib

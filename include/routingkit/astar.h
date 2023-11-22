@@ -227,7 +227,7 @@ class EspHeuristic {
             time = get_micro_time();
             unsigned min_distance = UINT_MAX;
             for (unsigned vertex: visibles) {
-                unsigned current_distance = table[vertex] + (unsigned)(0.5 + geo_dist(latitude[id],longitude[id],latitude[vertex],longitude[vertex]));
+                unsigned current_distance = table[vertex] + (unsigned)(0.5 + geo_dist(latitude[id],longitude[id],visibility->latitudes[vertex],visibility->longitudes[vertex]));
                 min_distance = std::min(min_distance, current_distance);
             }
             time_solve_esp += (get_micro_time() - time);
