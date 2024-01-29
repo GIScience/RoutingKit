@@ -85,7 +85,7 @@ int main(int argc, char*argv[]){
                 cout << "," << endl;
             vector<float> arc = { longitude[tail[a]], latitude[tail[a]], 
                                    longitude[head[a]], latitude[head[a]] };
-            geojson_linestring(arc, a, avoid_edges.is_set(a));
+            geojson_linestring(arc, a, weight[a], avoid_edges.is_set(a));
         }
         cout << "]}" << endl;
 

@@ -28,7 +28,7 @@ void geojson_point(float longitude, float latitude, unsigned id, bool avoid, boo
     std::cout << "}";
 }
 
-void geojson_linestring(std::vector<float> coordinates, unsigned id, bool avoid) {
+void geojson_linestring(std::vector<float> coordinates, unsigned id, unsigned weight, bool avoid) {
     std::cout << "{\"type\":\"Feature\",\"geometry\":";
     std::cout << "{\"type\":\"LineString\",\"coordinates\":[";
     for (unsigned c = 0; c < coordinates.size() ; c+=2) {
@@ -37,7 +37,8 @@ void geojson_linestring(std::vector<float> coordinates, unsigned id, bool avoid)
         std::cout << "[" << coordinates[c] << "," << coordinates[c+1] << "]";
     }
     std::cout << "]}";
-    std::cout << ",\"properties\":{\"id\":" << id << ",\"avoid\":" << avoid << "}"; 
+    std::cout << ",\"properties\":{\"id\":" << id << ",\"weight\":" << weight 
+              << ",\"avoid\":" << avoid << "}"; 
     std::cout << "}";
 }
 
