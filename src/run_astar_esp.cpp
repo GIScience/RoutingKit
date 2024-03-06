@@ -27,14 +27,13 @@ int main(int argc, char*argv[]){
 		string lat_file;
 		string lon_file;
 		string polygons_file;
-		string avoid_file;
 		string distance_file;
 		string settlings_file;
         bool save_settlings;
 
-		if(argc < 11 || argc > 12){
-			cerr << argv[0] << " first_out_file head_file weight_file source_file target_file lat_file lon_file polygons_file avoid_file distance_file" << endl;
-			cerr << argv[0] << " first_out_file head_file weight_file source_file target_file lat_file lon_file polygons_file avoid_file distance_file settlings_file" << endl;
+		if(argc < 10 || argc > 11){
+			cerr << argv[0] << " first_out_file head_file weight_file source_file target_file lat_file lon_file polygons_file distance_file" << endl;
+			cerr << argv[0] << " first_out_file head_file weight_file source_file target_file lat_file lon_file polygons_file distance_file settlings_file" << endl;
 			return 1;
 		}else{
 			first_out_file = argv[1];
@@ -45,10 +44,9 @@ int main(int argc, char*argv[]){
 			lat_file = argv[6];
 			lon_file = argv[7];
 			polygons_file = argv[8];
-			avoid_file = argv[9];
-			distance_file = argv[10];
-            if (argc == 12) {
-                settlings_file = argv[11];
+			distance_file = argv[9];
+            if (argc == 11) {
+                settlings_file = argv[10];
                 save_settlings = true;
             } else {
                 save_settlings = false;
@@ -62,7 +60,6 @@ int main(int argc, char*argv[]){
 		vector<unsigned>weight = load_vector<unsigned>(weight_file);
 		vector<float>latitude = load_vector<float>(lat_file);
 		vector<float>longitude = load_vector<float>(lon_file);
-	    BitVector avoid_edges = load_bit_vector(avoid_file);
 	
 		cout << "done" << endl;
 
@@ -87,8 +84,6 @@ int main(int argc, char*argv[]){
 			throw runtime_error("The head vector contains an out-of-bounds node id.");
 		if(weight.size() != arc_count)
 			throw runtime_error("The weight vector must be as long as the number of arcs");
-        if(avoid_edges.size() != arc_count)
-			throw runtime_error("The avoid vector must be as long as the number of arcs");
 
 		Astar astar(first_out, tail, head);
 
@@ -133,7 +128,7 @@ int main(int argc, char*argv[]){
 
 			long long time = -get_micro_time();
 
-			astar.reset().add_source(source[i]).set_avoid_edges(&avoid_edges);
+			astar.reset().add_source(source[i]);
 			while(!astar.is_finished()){
 				auto x = astar.settle(ScalarGetWeight(weight),*heuristic).node;
                 settled_nodes.set(x); 

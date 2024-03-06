@@ -37,7 +37,6 @@ public:
         std::fill(tentative_distance.begin(), tentative_distance.end(), inf_weight);
 		queue.clear();
 		was_popped.reset_all();
-        avoid_edges = nullptr;
         settle_count = 0;
 		return *this;
 	}
@@ -57,7 +56,6 @@ public:
             std::fill(tentative_distance.begin(), tentative_distance.end(), inf_weight);
 			queue.clear();
 			was_popped.reset_all();
-            avoid_edges = nullptr;
 			return *this;
 		}else{
 			this->first_out = &first_out;
@@ -80,12 +78,6 @@ public:
 		return *this;
 	}
 
-    Astar&set_avoid_edges(BitVector *avoid_edges){
-        assert(avoid_edges->size() == this->head->size());
-        this->avoid_edges = avoid_edges;
-        return *this;
-    }
-
 	bool is_finished()const{
 		return queue.empty();
 	}
@@ -103,7 +95,7 @@ public:
 		was_popped.set(p.id);
         
 		for(unsigned a=(*first_out)[p.id]; a<(*first_out)[p.id+1]; ++a){
-			if((!was_popped.is_set((*head)[a]))&&(!avoid_edges->is_set(a))){
+			if(!was_popped.is_set((*head)[a])){
 				unsigned w = get_weight(a, p.key);
 				if(w < inf_weight){
 					unsigned score = tentative_distance[p.id] + w;
@@ -178,7 +170,6 @@ private:
 	const std::vector<unsigned>*first_out;
 	const std::vector<unsigned>*tail;
 	const std::vector<unsigned>*head;
-	const BitVector *avoid_edges;
 };
 
 

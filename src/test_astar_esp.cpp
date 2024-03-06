@@ -1,4 +1,5 @@
 #include <routingkit/astar.h>
+#include <routingkit/constants.h>
 #include <routingkit/inverse_vector.h>
 
 #include <vector>
@@ -60,6 +61,8 @@ int main(int argc, char*argv[]){
                     float y4 = p[2*j],            x4 = p[2*j+1];
                     bool intersect = segments_intersect(x1,y1, x2,y2, x3,y3, x4,y4);
                     avoid_edges.set_if(a, intersect);
+                    if (intersect) 
+                        weight[a] = inf_weight;
                 }
             }
         }
@@ -76,8 +79,8 @@ int main(int argc, char*argv[]){
         vg.add_target(latitude[target_node],longitude[target_node]);
         EXPECT_CMP(vg.arc_count(), ==, 10);
         vg.sort_graph_for_routing();
-
-        astar.add_source(source_node, 0).set_avoid_edges(&avoid_edges);
+    
+        astar.add_source(source_node, 0);
 
         EspHeuristic heuristic(latitude, longitude, target_node, vg);
         
