@@ -24,11 +24,13 @@ int main(int argc, char*argv[]){
 		string lat_file;
 		string lon_file;
 		string polygons_file;
+		string weights_in_file;
+		string weights_out_file;
 		string avoid_nodes_file;
 		string avoid_edges_file;
 
-		if(argc != 8){
-			cerr << argv[0] << " first_out head latitudes longitudes polygons avoid__nodes_file avoid_edges_file" << endl;
+		if(argc != 10){
+			cerr << argv[0] << " first_out head latitudes longitudes polygons weights_in weights_out avoid_nodes_file avoid_edges_file" << endl;
 			return 1;
 		}else{
 			first_out_file = argv[1];
@@ -36,8 +38,10 @@ int main(int argc, char*argv[]){
 			lat_file = argv[3];
 			lon_file = argv[4];
 			polygons_file = argv[5];
-			avoid_nodes_file = argv[6];
-			avoid_edges_file = argv[7];
+			weights_in_file = argv[6];
+			weights_out_file = argv[7];
+			avoid_nodes_file = argv[8];
+			avoid_edges_file = argv[9];
 		}
 
 		cout << "Loading data ... " << flush;
@@ -46,7 +50,8 @@ int main(int argc, char*argv[]){
 		vector<unsigned>head = load_vector<unsigned>(head_file);
 		vector<float> lat = load_vector<float>(lat_file);
 		vector<float> lon = load_vector<float>(lon_file);
-		
+		vector<unsigned> weights = load_vector<unsigned>(weights_in_file);
+
 		cout << "done" << endl;
 
 		if (lat.size() != lon.size()) {
@@ -87,8 +92,14 @@ int main(int argc, char*argv[]){
 				unsigned tail_id = tail[i];
 				unsigned head_id = head[i];
 				if (avoid_edges.is_set(i)) continue;
-				avoid_edges.set_if(i, avoid_nodes.is_set(tail_id) || avoid_nodes.is_set(head_id) 
-					|| edge_crosses_polygon(lat[tail_id], lon[tail_id], lat[head_id], lon[head_id], poly));
+				if (avoid_nodes.is_set(tail_id)
+					|| avoid_nodes.is_set(head_id) 
+					|| edge_crosses_polygon(lat[tail_id], lon[tail_id], lat[head_id],
+						lon[head_id], poly)) 
+				{
+					avoid_edges.set(i);
+					weights[i] = inf_weight;
+				}
 			}
 		}
 		cout << "done" << endl;
@@ -96,6 +107,7 @@ int main(int argc, char*argv[]){
 		cout << "Saving files ... " << flush;
 		save_bit_vector(avoid_nodes_file, avoid_nodes);
 		save_bit_vector(avoid_edges_file, avoid_edges);
+		save_vector<unsigned>(weights_out_file, weights);
 		cout << "done" << endl;
 
 	}catch(exception&err){
