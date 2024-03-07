@@ -3,6 +3,7 @@
 
 #include <routingkit/id_queue.h>
 #include <routingkit/constants.h>
+#include <routingkit/edge_crosses_polygon.h>
 #include <routingkit/timer.h>
 #include <routingkit/timestamp_flag.h>
 #include <routingkit/geo_dist.h>
@@ -11,7 +12,6 @@
 #include <vector>
 
 #include <climits>
-#include <iostream>
 
 namespace RoutingKit{
 
@@ -26,7 +26,8 @@ public:
 		queue(first_out.size()-1),
 		first_out(&first_out),
 		tail(&tail),
-		head(&head){
+		head(&head)
+	{
 		assert(!first_out.empty());
 		assert(first_out.front() == 0);
 		assert(first_out.back() == tail.size());
@@ -106,7 +107,7 @@ public:
 						} else {
 							queue.push({(*head)[a], score + h});
 						}
-                        predecessor_arc[(*head)[a]] = a;
+						predecessor_arc[(*head)[a]] = a;
 						tentative_distance[(*head)[a]] = score;
 					}
 				}
@@ -129,7 +130,7 @@ public:
 		std::vector<unsigned>path;
 		if(was_node_reached(x)){
 			assert(was_node_reached(x));
-
+			
 			unsigned p;
 			while(p = predecessor_arc[x], p != invalid_id){
 				path.push_back(x);
@@ -171,7 +172,6 @@ private:
 	const std::vector<unsigned>*tail;
 	const std::vector<unsigned>*head;
 };
-
 
 class ZeroHeuristic {
 public:

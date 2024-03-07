@@ -8,7 +8,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -32,7 +31,7 @@ int main(int argc, char*argv[]){
 		if(argc != 10){
 			cerr << argv[0] << " first_out head latitudes longitudes polygons weights_in weights_out avoid_nodes_file avoid_edges_file" << endl;
 			return 1;
-		}else{
+		} else {
 			first_out_file = argv[1];
 			head_file = argv[2];
 			lat_file = argv[3];
@@ -69,19 +68,20 @@ int main(int argc, char*argv[]){
 			throw runtime_error("The last element of first out must be the arc count.");
 		if(max_element_of(head) >= node_count)
 			throw runtime_error("The head vector contains an out-of-bounds node id.");
-		
+
 		BitVector avoid_nodes(node_count);
 		BitVector avoid_edges(arc_count);
 
+		// TODO: do we need these three lines?
 		ifstream in(polygons_file);
 		if(!in)
 			throw runtime_error("Can not open \""+polygons_file+"\"");
 
 		cout << "Mapping nodes and edges ... " << flush;
 
-        vector<vector<float>> polys = load_polygons(polygons_file);
+		vector<vector<float>> polys = load_polygons(polygons_file);
 
-        for (auto poly:polys) {
+		for (auto poly:polys) {
 			// Check point in polygon
 			for (size_t i = 0; i < node_count; i++) {
 				if (avoid_nodes.is_set(i)) continue;
@@ -95,7 +95,7 @@ int main(int argc, char*argv[]){
 				if (avoid_nodes.is_set(tail_id)
 					|| avoid_nodes.is_set(head_id) 
 					|| edge_crosses_polygon(lat[tail_id], lon[tail_id], lat[head_id],
-						lon[head_id], poly)) 
+				lon[head_id], poly)) 
 				{
 					avoid_edges.set(i);
 					weights[i] = inf_weight;

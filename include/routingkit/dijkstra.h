@@ -2,6 +2,8 @@
 #define DIJKSTRA_H
 
 #include <routingkit/id_queue.h>
+#include <routingkit/point_in_polygon.h>
+#include <routingkit/edge_crosses_polygon.h>
 #include <routingkit/constants.h>
 #include <routingkit/timestamp_flag.h>
 #include <vector>
@@ -181,6 +183,42 @@ private:
 	const std::vector<unsigned>*weight;
 };
 
-}
+class AvoidPolygonsGetWeight{
+public:
+	explicit AvoidPolygonsGetWeight(
+		const std::vector<unsigned>&weight,
+		const std::vector<unsigned>&tail,
+		const std::vector<unsigned>&head,
+		const std::vector<float>&lat,
+		const std::vector<float>&lon,
+		const std::vector<std::vector<float>>&polys
+	): weight(&weight)
+	 , tail(&tail)
+	 , head(&head)
+	 , lat(&lat)
+	 , lon(&lon)
+	 , polys(&polys)
+	{}
 
+	unsigned operator()(unsigned arc, unsigned departure_time) const {
+		(void)departure_time;
+		for (auto poly : *polys) {
+			if ( point_in_polygon((*lat)[(*tail)[arc]], (*lon)[(*tail)[arc]], poly)
+				|| point_in_polygon((*lat)[(*head)[arc]], (*lon)[(*head)[arc]], poly)
+				|| edge_crosses_polygon((*lat)[(*tail)[arc]],(*lon)[(*tail)[arc]],(*lat)[(*head)[arc]], (*lon)[(*head)[arc]], poly)
+			) return inf_weight;
+		}
+		return (*weight)[arc];
+	}
+
+private:
+	const std::vector<unsigned>*weight;
+	const std::vector<unsigned>*tail;
+	const std::vector<unsigned>*head;
+	const std::vector<float>*lat;
+	const std::vector<float>*lon;
+	const std::vector<std::vector<float>>*polys;
+	
+};
+}
 #endif
