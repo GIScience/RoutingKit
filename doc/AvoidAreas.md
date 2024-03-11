@@ -9,4 +9,6 @@ In order to work with avoid areas routing, you need to perform the following ste
    polygon vertex. The polygon is closed automatically, i.e. you SHOULD NOT
    repeat the first vertex at the end of the list.
 1. Use `map_polygons_to_nodes_and_edges` to mark graph edges to be avoided.
+   This creates a new weight vector setting the corresponding edge weight
+   to infinity to be used for routing.
 1. Use `run_astar`, `run_esp` or  `run_cch_aa`
