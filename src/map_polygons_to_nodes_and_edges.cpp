@@ -7,7 +7,6 @@
 #include <routingkit/polygon_io.h>
 
 #include <iostream>
-#include <fstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -71,11 +70,6 @@ int main(int argc, char*argv[]){
 
 		BitVector avoid_nodes(node_count);
 		BitVector avoid_edges(arc_count);
-
-		// TODO: do we need these three lines?
-		ifstream in(polygons_file);
-		if(!in)
-			throw runtime_error("Can not open \""+polygons_file+"\"");
 
 		cout << "Mapping nodes and edges ... " << flush;
 
