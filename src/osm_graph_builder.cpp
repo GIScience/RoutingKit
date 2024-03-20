@@ -15,6 +15,7 @@
 #include <string>
 #include <stdio.h>
 #include <memory>
+#include <cstdint>
 
 namespace RoutingKit{
 
