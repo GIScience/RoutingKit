@@ -119,6 +119,7 @@ int main(int argc, char*argv[]){
 
 		cout << "max running time : " << time_max << "musec" << endl;
 		cout << "avg running time : " << time_sum/query_count << "musec" << endl;
+		cout << "settled nodes    : " << dij.get_settle_count() << endl;
 
 		save_vector(distance_file, distance);
 

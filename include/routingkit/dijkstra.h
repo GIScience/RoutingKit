@@ -33,7 +33,7 @@ public:
 	Dijkstra&reset(){
 		queue.clear();
 		was_popped.reset_all();
-        settle_count = 0;
+		settle_count = 0;
 		return *this;
 	}
 
@@ -43,7 +43,7 @@ public:
 		assert(first_out.back() == tail.size());
 		assert(first_out.back() == head.size());
 
-        this->settle_count = 0;
+		this->settle_count = 0;
 
 		if(this->first_out != nullptr && first_out.size() == this->first_out->size()){
 			this->first_out = &first_out;
@@ -109,7 +109,7 @@ public:
 				}
 			}
 		}
-        settle_count++;
+		settle_count++;
 		return SettleResult{p.id, p.key};
 	}
 
@@ -152,9 +152,9 @@ public:
 		return path;
 	}
 
-    unsigned get_settle_count() const {
-        return settle_count;
-    }
+	unsigned get_settle_count() const {
+		return settle_count;
+	}
 
 
 private:

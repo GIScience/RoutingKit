@@ -113,10 +113,10 @@ int main(int argc, char*argv[]){
 
 		cout << "done" << endl;
 
-		cout << "avoid prep time     : " << avoid_prep_time << "musec" << endl;
-		cout << "custiomization time : " << customization_time << "musec" << endl;
-		cout << "max running time    : " << time_max << "musec" << endl;
-		cout << "avg running time    : " << time_sum/query_count << "musec" << endl;
+		cout << "avoid prep time    : " << avoid_prep_time << "musec" << endl;
+		cout << "customization time : " << customization_time << "musec" << endl;
+		cout << "max running time   : " << time_max << "musec" << endl;
+		cout << "avg running time   : " << time_sum/query_count << "musec" << endl;
 
 		save_vector(distance_file, distance);
 
