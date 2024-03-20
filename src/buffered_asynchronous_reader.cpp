@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <exception>
 #include <string>
+#include <stdexcept>
 
 namespace RoutingKit{
 
